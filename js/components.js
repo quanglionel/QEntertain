@@ -160,8 +160,13 @@ async function showDetail(slug) {
 
         if (isPhim) {
             const res = await API.getPhimDetail(slug);
-            if (!res.status) throw new Error('Lỗi tải phim');
+            console.log('Phim Detail Res:', res);
+
+            if (!res || !res.status || !res.movie) {
+                throw new Error('Không tìm thấy thông tin phim (API Error)');
+            }
             data = res.movie;
+            // Gán episodes vào data để render
             data.episodes = res.episodes || [];
         } else {
             const res = await API.getTruyenDetail(slug);
@@ -273,6 +278,14 @@ window.readChap = async (apiUrl) => {
         container.innerHTML = 'Error loading content';
     }
 };
+
+/* === SWITCH MODE === */
+function switchMode(mode) {
+    // Save mode
+    localStorage.setItem('qhub-mode', mode);
+    // Reload page to apply changes cleanly (simple approach)
+    location.reload();
+}
 
 window.showDetail = showDetail;
 window.switchMode = switchMode;
