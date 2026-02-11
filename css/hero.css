@@ -48,14 +48,30 @@
 .hero-content {
     position: absolute;
     bottom: 80px;
-    left: 60px;
-    max-width: 600px;
-    padding: 0;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: 100%;
+    max-width: var(--max-width);
+    padding: 0 24px;
     z-index: 2;
-    animation: heroContentIn 0.8s ease forwards;
+    pointer-events: none;
+    /* Click xuyên qua vùng trống */
 }
 
-/* Hiệu ứng xuất hiện nội dung */
+.hero-content>* {
+    pointer-events: auto;
+    max-width: 650px;
+    /* Giới hạn chiều rộng nội dung văn bản */
+}
+
+/* Hiệu ứng xuất hiện nội dung (Chỉ animate opacity và translateY) */
+.hero-content>* {
+    animation: heroContentIn 0.8s ease forwards;
+    opacity: 0;
+    /* Ẩn ban đầu */
+}
+
 @keyframes heroContentIn {
     from {
         opacity: 0;

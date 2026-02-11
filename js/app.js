@@ -8,7 +8,7 @@
  * Gọi khi khởi tạo lần đầu và sau mỗi lần chuyển mode
  */
 function initAllEvents() {
-    initHeroSlider();
+    // initHeroSlider(); // Đã chuyển sang components.js
     initThemeToggle();
     initSearchBox();
     initHeaderScroll();

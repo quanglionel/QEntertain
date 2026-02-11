@@ -28,7 +28,7 @@ const Player = {
             video.playsInline = true;
             videoWrapper.appendChild(video);
 
-            if (Hls.isSupported()) {
+            if (window.Hls && Hls.isSupported()) {
                 this.hls = new Hls();
                 this.hls.loadSource(url);
                 this.hls.attachMedia(video);
@@ -57,38 +57,80 @@ const Player = {
      * Khởi tạo trình đọc truyện
      * @param {HTMLElement} container - Nơi chứa reader
      * @param {Array} images - Danh sách URL ảnh
+     * @param {Object} nav - { prev: url, next: url }
      */
-    initReader(container, images) {
-        this.destroy();
+    initReader(container, images, nav = {}) {
+        this.destroy(); // Clear old content
 
         const readingContainer = document.createElement('div');
         readingContainer.className = 'reading-container';
 
+        // Helper tạo thanh Nav
+        const createNav = () => {
+            const navDiv = document.createElement('div');
+            navDiv.className = 'reader-nav';
+            navDiv.style.cssText = 'display:flex;justify-content:space-between;padding:10px 0;gap:10px;margin-bottom:10px;';
+
+            const prevBtn = document.createElement('button');
+            prevBtn.innerHTML = '❮ Chap Trước';
+            prevBtn.className = 'server-btn'; // Tận dụng style có sẵn
+            prevBtn.disabled = !nav.prev;
+            prevBtn.style.flex = '1';
+            if (nav.prev) {
+                prevBtn.onclick = () => {
+                    console.log('Nav Click Prev:', nav.prev);
+                    window.readChap(nav.prev, true);
+                };
+            } else {
+                prevBtn.style.opacity = '0.5';
+                prevBtn.style.cursor = 'not-allowed';
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.innerHTML = 'Chap Sau ❯';
+            nextBtn.className = 'server-btn';
+            nextBtn.disabled = !nav.next;
+            nextBtn.style.flex = '1';
+            if (nav.next) {
+                nextBtn.onclick = () => {
+                    console.log('Nav Click Next:', nav.next);
+                    window.readChap(nav.next, true);
+                };
+            } else {
+                nextBtn.style.opacity = '0.5';
+                nextBtn.style.cursor = 'not-allowed';
+            }
+
+            navDiv.appendChild(prevBtn);
+            navDiv.appendChild(nextBtn);
+            return navDiv;
+        };
+
+        // Top Nav
+        readingContainer.appendChild(createNav());
+
         if (!images || images.length === 0) {
-            readingContainer.innerHTML = '<p style="color:#fff;text-align:center;padding:20px;">Không có nội dung chương này.</p>';
+            const msg = document.createElement('p');
+            msg.innerText = 'Không có nội dung chương này.';
+            msg.style.cssText = 'color:#fff;text-align:center;padding:20px;';
+            readingContainer.appendChild(msg);
         } else {
             images.forEach(imgUrl => {
                 const img = document.createElement('img');
                 img.className = 'chapter-image';
                 img.loading = 'lazy';
-                img.alt = 'Trang truyện';
-
-                // Xử lý URL ảnh qua proxy nếu cần
-                // (Giả sử imgs đã được xử lý full URL từ component)
-                img.src = imgUrl;
-
-                // Fallback nếu lỗi
-                img.onerror = () => {
-                    img.style.display = 'none';
-                };
-
+                img.src = imgUrl; // Ảnh đã được xử lý full URL
+                img.style.cssText = 'display:block;margin:0 auto;max-width:100%;height:auto;margin-bottom:5px;';
+                img.onerror = () => { img.style.display = 'none'; };
                 readingContainer.appendChild(img);
             });
         }
 
+        // Bottom Nav
+        readingContainer.appendChild(createNav());
+
         container.appendChild(readingContainer);
-        // Cuộn xuống reader
-        readingContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Cuộn xuống reader (nếu cần, nhưng thường readChap đã scroll rồi)
     },
 
     /**
@@ -100,8 +142,9 @@ const Player = {
             this.hls = null;
         }
         // Các container player/reader sẽ được clear khi render lại nội dung chi tiết
-        // Nhưng nếu cần reset cụ thể:
-        // const container = document.getElementById('mediaContainer');
-        // if (container) container.innerHTML = '';
+        const media = document.getElementById('mediaContainer');
+        if (media) media.innerHTML = '';
     }
 };
+
+window.Player = Player;

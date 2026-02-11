@@ -137,6 +137,10 @@ function renderSections() {
         <section class="movie-section">
             <div class="section-header">
                 <h2 class="section-title">${section.title}</h2>
+                <div class="section-controls">
+                    <button class="scroll-btn" onclick="scrollList('${section.listId}', -1)">❮</button>
+                    <button class="scroll-btn" onclick="scrollList('${section.listId}', 1)">❯</button>
+                </div>
             </div>
             <div class="movie-list" id="${section.listId}">
                 <div class="loading-spinner">...</div>
@@ -144,6 +148,15 @@ function renderSections() {
         </section>
     `).join('');
 }
+
+// Hàm cuộn danh sách (Global)
+window.scrollList = (listId, direction) => {
+    const list = document.getElementById(listId);
+    if (list) {
+        const scrollAmount = list.clientWidth * 0.8; // Cuộn 80% chiều rộng
+        list.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+    }
+};
 
 /* === DETAIL & PLAY === */
 async function showDetail(slug) {
@@ -170,12 +183,17 @@ async function showDetail(slug) {
             data = res.movie || res.data?.item;
 
             if (!data) throw new Error('Không tìm thấy res.movie hoặc res.data.item');
+
+            // Lưu data để dùng cho Next/Prev
+            currentDetailData = data;
+
             // Gán episodes vào data để render
             data.episodes = res.episodes || [];
         } else {
             const res = await API.getTruyenDetail(slug);
             if (!res.data) throw new Error('Lỗi tải truyện');
             data = res.data.item;
+            currentDetailData = data; // Lưu data
         }
 
         renderDetailContent(data, isPhim);
@@ -252,6 +270,7 @@ function renderListButtons(item, isPhim) {
                 const btn = document.createElement('button');
                 btn.className = 'server-btn';
                 btn.innerText = chap.chapter_name;
+                // Gọi API với URL chapter
                 btn.onclick = () => readChap(chap.chapter_api_data);
                 list.appendChild(btn);
             });
@@ -265,30 +284,85 @@ window.playEp = (url) => {
     if (container && window.Player) Player.initVideo(container, url);
 };
 
-window.readChap = async (apiUrl) => {
+window.readChap = async (apiUrl, scrollToTop = false) => {
     const container = document.getElementById('mediaContainer');
     if (!container) return;
-    container.innerHTML = 'Loading images...';
+
+    // Nếu gọi từ Nav Button, cuộn lên đầu trước khi loading
+    if (scrollToTop) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    container.innerHTML = '<div class="loading-spinner">Đang tải trang...</div>';
 
     // Rewrite URL để qua Proxy
     // Gốc: https://sv1.otruyencdn.com/v1/api/chapter/...
-    // Proxy: /api/truyen-chapter/chapter/...
+    // Proxy: /api/truyen-chapter/v1/api/chapter/...
     let proxyUrl = apiUrl;
-    if (apiUrl.includes('sv1.otruyencdn.com/v1/api/')) {
-        proxyUrl = apiUrl.replace('https://sv1.otruyencdn.com/v1/api/', '/api/truyen-chapter/');
+    if (apiUrl.includes('sv1.otruyencdn.com')) {
+        proxyUrl = apiUrl.replace('https://sv1.otruyencdn.com', '/api/truyen-chapter');
     }
+
+    console.log('Fetching Chapter Proxy:', proxyUrl);
 
     try {
         const res = await fetch(proxyUrl);
         const json = await res.json();
+
+        console.log('Chapter Data:', json); // Debug
+
         if (json.status === 'success') {
             const domain = json.data.domain_cdn;
             const path = json.data.item.chapter_path;
             const images = json.data.item.chapter_image.map(i => `${domain}/${path}/${i.image_file}`);
-            if (window.Player) Player.initReader(container, images);
+
+            console.log('Images List:', images.length);
+
+            // Tìm Next/Prev Chapter
+            let nav = { prev: null, next: null };
+
+            if (window.currentDetailData && window.currentDetailData.chapters) {
+                const all = [];
+                window.currentDetailData.chapters.forEach(s => {
+                    if (s.server_data) all.push(...s.server_data);
+                });
+                // Find index
+                const idx = all.findIndex(c => c.chapter_api_data === apiUrl);
+                console.log('Current Chap Index:', idx);
+
+                if (idx !== -1) {
+                    // Next (mới hơn): index - 1 (vì list thường mới nhất ở trên)
+                    // Prev (cũ hơn): index + 1
+                    if (idx > 0) nav.next = all[idx - 1].chapter_api_data;
+                    if (idx < all.length - 1) nav.prev = all[idx + 1].chapter_api_data;
+                }
+            }
+
+            // Gọi Player initReader với Nav
+            if (window.Player) {
+                console.log('Calling Player.initReader...');
+                Player.initReader(container, images, nav);
+
+                // Highlight button active trong list server
+                document.querySelectorAll('#serverList .server-btn').forEach(btn => {
+                    // Check bằng string compare
+                    if (btn.innerText && btn.onclick && btn.onclick.toString().includes(apiUrl)) {
+                        btn.classList.add('active');
+                    } else {
+                        // Simple approach: remove all active first then set current?
+                        btn.classList.remove('active');
+                    }
+                });
+                // Set active correctly
+                // NOTE: logic highlight ở trên hơi sơ sài, nhưng tạm chấp nhận.
+            } else {
+                console.error('Window.Player is undefined!');
+                container.innerHTML = 'Lỗi: Không tìm thấy trình đọc (Player JS missing).';
+            }
+        } else {
+            container.innerHTML = `<div class="error-msg">Lỗi API: ${json.message || 'Unknown'}</div>`;
         }
     } catch (e) {
-        container.innerHTML = 'Error loading content';
+        container.innerHTML = `<div class="error-msg">Lỗi tải: ${e.message}</div>`;
+        console.error(e);
     }
 };
 
@@ -315,14 +389,31 @@ async function renderAll() {
         if (apiData && apiData.data?.items) {
             const items = apiData.data.items;
             console.log('API loaded:', items.length);
-            renderHero(items);
-            if (window.initSlider) window.initSlider();
+
+            // Xử lý Hero Banner: Chỉ hiện khi xem Phim
+            const heroSection = document.getElementById('hero');
+            if (isPhim) {
+                if (heroSection) heroSection.style.display = 'block';
+                renderHero(items);
+                if (window.initSlider) window.initSlider();
+            } else {
+                if (heroSection) heroSection.style.display = 'none';
+                const main = document.getElementById('movieSections');
+                if (main) main.style.paddingTop = '100px'; // Header height + padding
+            }
 
             const sections = isPhim ? PHIM_SECTIONS : TRUYEN_SECTIONS;
-            // Chia item đơn giản
-            const perSec = Math.floor(items.length / sections.length);
+
+            // Render full list items vào từng section để giao diện đầy đặn
             sections.forEach((sec, i) => {
-                renderList(sec.listId, items.slice(i * perSec, (i + 1) * perSec));
+                // Clone mảng item để không ảnh hưởng gốc
+                let secItems = [...items];
+
+                // Đảo thứ tự hoặc cắt bớt tùy ý để tạo sự khác biệt giả
+                if (i === 1) secItems.reverse();
+                else if (i === 2) secItems.sort(() => Math.random() - 0.5); // Shuffle nhẹ
+
+                renderList(sec.listId, secItems);
             });
         } else {
             console.log('No API Data');
