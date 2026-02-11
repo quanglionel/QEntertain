@@ -1,0 +1,8 @@
+version: "3.8"
+services:
+  qphim:
+    build: .
+    container_name: qphim
+    ports:
+      - "8080:80"
+    restart: unless-stopped

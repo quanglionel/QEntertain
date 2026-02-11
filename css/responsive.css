@@ -1,0 +1,131 @@
+/* ============================================
+   QPhim - Responsive
+   Điều chỉnh giao diện cho các kích thước màn hình
+   ============================================ */
+
+/* === Tablet (≤ 1024px) === */
+@media (max-width: 1024px) {
+    .hero-title {
+        font-size: 2.4rem;
+    }
+
+    .hero-content {
+        padding: 0 40px;
+        left: 20px;
+        max-width: 480px;
+    }
+
+    .movie-card {
+        flex: 0 0 170px;
+    }
+
+    .footer-inner {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+}
+
+/* === Mobile lớn (≤ 768px) === */
+@media (max-width: 768px) {
+    :root {
+        --header-height: 64px;
+    }
+
+    /* Menu chuyển thành dropdown */
+    .nav {
+        display: none;
+        position: absolute;
+        top: var(--header-height);
+        left: 0;
+        right: 0;
+        background: var(--bg-header);
+        backdrop-filter: blur(20px);
+        flex-direction: column;
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        box-shadow: var(--shadow-md);
+    }
+
+    .nav.active {
+        display: flex;
+    }
+
+    /* Hiện nút hamburger */
+    .mobile-menu-btn {
+        display: flex;
+    }
+
+    /* Thu nhỏ hero */
+    .hero {
+        height: 60vh;
+        min-height: 400px;
+    }
+
+    .hero-title {
+        font-size: 1.8rem;
+    }
+
+    .hero-content {
+        padding: 0 24px;
+        left: 0;
+        bottom: 60px;
+        max-width: 100%;
+    }
+
+    .hero-desc {
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        font-size: 0.85rem;
+    }
+
+    .hero-actions {
+        flex-wrap: wrap;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 12px 24px;
+        font-size: 0.9rem;
+    }
+
+    /* Ẩn mũi tên trên mobile */
+    .hero-arrow {
+        display: none;
+    }
+
+    .movie-card {
+        flex: 0 0 150px;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+    }
+
+    .search-box.active .search-input {
+        width: 200px;
+    }
+
+    .footer-links {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* === Mobile nhỏ (≤ 480px) === */
+@media (max-width: 480px) {
+    .movie-card {
+        flex: 0 0 130px;
+    }
+
+    .hero-title {
+        font-size: 1.5rem;
+    }
+
+    .footer-links {
+        grid-template-columns: 1fr;
+    }
+
+    /* Ẩn "Xem tất cả" trên màn nhỏ */
+    .see-all {
+        display: none;
+    }
+}

@@ -1,0 +1,311 @@
+/* ============================================
+   QPhim - Header
+   Logo, thanh điều hướng, tìm kiếm, nút theme,
+   nút tài khoản, menu mobile
+   ============================================ */
+
+/* === Header cố định trên cùng === */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    background: var(--bg-header);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    z-index: 1000;
+    transition: background var(--transition), border-color var(--transition);
+}
+
+/* Hiệu ứng khi cuộn trang */
+.header.scrolled {
+    box-shadow: var(--shadow-md);
+}
+
+/* Bố cục bên trong header */
+.header-inner {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* === Logo === */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+/* Biểu tượng nút play trong logo */
+.logo-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    color: #fff;
+    box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+/* Tên thương hiệu gradient */
+.logo-text {
+    background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* === Nút chuyển đổi QPhim / QTruyện === */
+.mode-switcher {
+    display: flex;
+    background: var(--bg-input);
+    border-radius: var(--radius-full);
+    padding: 3px;
+    border: 1px solid var(--border);
+}
+
+.mode-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: all var(--transition);
+    cursor: pointer;
+}
+
+.mode-tab:hover {
+    color: var(--text-primary);
+}
+
+/* Tab đang được chọn */
+.mode-tab.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 2px 10px var(--accent-glow);
+}
+
+/* === Thanh điều hướng === */
+.nav {
+    display: flex;
+    gap: 8px;
+}
+
+.nav-link {
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all var(--transition);
+}
+
+.nav-link:hover {
+    color: var(--text-primary);
+    background: var(--bg-input);
+}
+
+/* Mục đang được chọn */
+.nav-link.active {
+    color: var(--accent);
+    background: var(--badge-bg);
+}
+
+/* === Ô tìm kiếm === */
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* Nút bật/tắt ô tìm kiếm */
+.search-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    transition: all var(--transition);
+}
+
+.search-toggle:hover {
+    color: var(--text-primary);
+    background: var(--bg-input);
+}
+
+/* Ô nhập tìm kiếm (ẩn mặc định) */
+.search-input {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    padding: 0;
+    background: var(--bg-input);
+    border: 1px solid transparent;
+    border-radius: var(--radius-full);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: all var(--transition);
+    opacity: 0;
+    outline: none;
+}
+
+/* Ô tìm kiếm khi mở rộng */
+.search-box.active .search-input {
+    width: 280px;
+    padding: 10px 20px 10px 44px;
+    opacity: 1;
+    border-color: var(--border-hover);
+}
+
+/* Ô tìm kiếm khi focus */
+.search-box.active .search-input:focus {
+    background: var(--bg-input-focus);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* === Nút chuyển đổi Theme === */
+.theme-toggle {
+    position: relative;
+    width: 60px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    transition: all var(--transition);
+    overflow: hidden;
+}
+
+.theme-toggle:hover {
+    border-color: var(--border-hover);
+}
+
+/* Icon mặt trăng & mặt trời */
+.theme-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    transition: all var(--transition);
+    z-index: 1;
+}
+
+.theme-icon.moon {
+    left: 8px;
+    opacity: 1;
+}
+
+.theme-icon.sun {
+    right: 8px;
+    opacity: 0.5;
+}
+
+/* Thanh trượt tròn */
+.theme-slider {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 24px;
+    height: 24px;
+    background: var(--accent);
+    border-radius: 50%;
+    transition: all var(--transition);
+    box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+/* Vị trí thanh trượt khi ở Light theme */
+[data-theme="light"] .theme-slider {
+    left: calc(100% - 27px);
+}
+
+[data-theme="light"] .theme-icon.moon {
+    opacity: 0.5;
+}
+
+[data-theme="light"] .theme-icon.sun {
+    opacity: 1;
+}
+
+/* === Nút tài khoản === */
+.btn-user {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    transition: all var(--transition);
+}
+
+.btn-user:hover {
+    color: var(--text-primary);
+    background: var(--bg-input);
+}
+
+/* === Nút menu trên mobile === */
+.mobile-menu-btn {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 42px;
+    height: 42px;
+    gap: 5px;
+    border-radius: var(--radius-sm);
+}
+
+/* 3 gạch ngang của nút hamburger */
+.mobile-menu-btn span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--text-primary);
+    border-radius: 2px;
+    transition: all var(--transition);
+}
+
+/* Hiệu ứng chữ X khi menu mở */
+.mobile-menu-btn.active span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.mobile-menu-btn.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-btn.active span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}

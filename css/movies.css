@@ -1,0 +1,320 @@
+/* ============================================
+   QPhim - Danh sách phim & Movie Card
+   Section phim, carousel ngang, thẻ phim
+   ============================================ */
+
+/* === Vùng nội dung chính === */
+.main-content {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 40px 24px 60px;
+}
+
+/* === Section phim (mỗi danh mục 1 section) === */
+.movie-section {
+    margin-bottom: 48px;
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+/* Hiệu ứng xuất hiện tuần tự */
+.movie-section:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.movie-section:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.movie-section:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+.movie-section:nth-child(5) {
+    animation-delay: 0.4s;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* === Tiêu đề section === */
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: -0.3px;
+}
+
+.title-icon {
+    font-size: 1.3rem;
+}
+
+/* === Điều khiển section (nút cuộn, xem tất cả) === */
+.section-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Nút cuộn trái/phải */
+.scroll-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 1.3rem;
+    transition: all var(--transition);
+}
+
+.scroll-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+/* Liên kết "Xem tất cả" */
+.see-all {
+    color: var(--accent);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    transition: all var(--transition);
+}
+
+.see-all:hover {
+    background: var(--badge-bg);
+}
+
+/* === Danh sách phim (cuộn ngang) === */
+.movie-list {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    padding-bottom: 10px;
+
+    /* Ẩn thanh cuộn */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.movie-list::-webkit-scrollbar {
+    display: none;
+}
+
+/* === Thẻ phim (Movie Card) === */
+.movie-card {
+    flex: 0 0 200px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    transition: all var(--transition);
+    cursor: pointer;
+    position: relative;
+}
+
+/* Hiệu ứng hover - nổi lên */
+.movie-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: var(--accent);
+    box-shadow: 0 12px 40px var(--accent-glow), var(--card-shadow);
+    z-index: 10;
+}
+
+/* === Poster phim === */
+.movie-poster {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2/3;
+    overflow: hidden;
+}
+
+/* Hình ảnh poster (gradient + emoji) */
+.movie-poster-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: rgba(255, 255, 255, 0.4);
+    transition: transform var(--transition-slow);
+}
+
+/* Phóng to khi hover */
+.movie-card:hover .movie-poster-img {
+    transform: scale(1.08);
+}
+
+/* Lớp phủ khi hover (hiện nút play) */
+.movie-poster-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.movie-card:hover .movie-poster-overlay {
+    opacity: 1;
+}
+
+/* Nút play tròn */
+.play-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px var(--accent-glow);
+    transform: scale(0.8);
+    transition: transform var(--transition);
+}
+
+.movie-card:hover .play-icon {
+    transform: scale(1);
+}
+
+.play-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: #fff;
+    margin-left: 3px;
+}
+
+/* === Nhãn trên poster === */
+
+/* Nhãn chất lượng (góc trên trái) */
+.movie-quality {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 3px 8px;
+    background: var(--quality-bg);
+    backdrop-filter: blur(8px);
+    color: var(--quality-text);
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Nhãn đánh giá (góc trên phải) */
+.movie-rating {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 3px 8px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    color: var(--rating-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* Nhãn số tập (góc dưới trái) */
+.movie-episode {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    padding: 3px 10px;
+    background: rgba(124, 92, 252, 0.85);
+    color: #fff;
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+/* === Thông tin phim (dưới poster) === */
+.movie-info {
+    padding: 12px;
+}
+
+/* Tên phim (1 dòng, cắt nếu quá dài) */
+.movie-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color var(--transition);
+}
+
+.movie-card:hover .movie-title {
+    color: var(--accent);
+}
+
+/* Năm & thể loại */
+.movie-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.movie-year {
+    font-weight: 500;
+}
+
+.movie-genre {
+    padding: 2px 8px;
+    background: var(--bg-input);
+    border-radius: var(--radius-full);
+    font-size: 0.72rem;
+}
+
+/* === Ảnh poster thật (từ API) === */
+img.movie-poster-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* === Loading placeholder === */
+.loading-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 200px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-style: italic;
+}

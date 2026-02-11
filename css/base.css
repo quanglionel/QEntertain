@@ -1,0 +1,66 @@
+/* ============================================
+   QPhim - CSS Cơ bản
+   Reset mặc định, typography, thanh cuộn
+   ============================================ */
+
+/* === Reset toàn bộ === */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* === Thiết lập HTML === */
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* === Body === */
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    transition: background-color var(--transition), color var(--transition);
+    overflow-x: hidden;
+}
+
+/* === Liên kết === */
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: color var(--transition);
+}
+
+/* === Nút bấm === */
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+    color: inherit;
+    outline: none;
+}
+
+/* === Thanh cuộn tuỳ chỉnh === */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}

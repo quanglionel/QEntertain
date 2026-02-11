@@ -1,0 +1,281 @@
+/* ============================================
+   QPhim - Hero Banner
+   Slideshow phim nổi bật với điều hướng
+   ============================================ */
+
+/* === Vùng chứa hero === */
+.hero {
+    position: relative;
+    width: 100%;
+    height: 75vh;
+    min-height: 500px;
+    max-height: 800px;
+    margin-top: var(--header-height);
+    overflow: hidden;
+}
+
+/* === Slide (mỗi phim 1 slide) === */
+.hero-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    pointer-events: none;
+}
+
+/* Slide đang hiển thị */
+.hero-slide.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Hình nền gradient của slide */
+.hero-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+}
+
+/* Lớp phủ gradient (làm tối phía dưới) */
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--overlay-gradient);
+}
+
+/* === Nội dung phim trên slide === */
+.hero-content {
+    position: absolute;
+    bottom: 80px;
+    left: 60px;
+    max-width: 600px;
+    padding: 0;
+    z-index: 2;
+    animation: heroContentIn 0.8s ease forwards;
+}
+
+/* Hiệu ứng xuất hiện nội dung */
+@keyframes heroContentIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Nhãn badge (Nổi bật, Mới,...) */
+.hero-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: var(--badge-bg);
+    color: var(--badge-text);
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    backdrop-filter: blur(10px);
+}
+
+/* Tên phim */
+.hero-title {
+    font-size: 3.2rem;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -1.5px;
+    margin-bottom: 16px;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* === Thông tin phim (rating, năm, thời lượng, chất lượng) === */
+.hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.meta-rating {
+    color: var(--rating-color);
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.meta-year,
+.meta-duration {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Nhãn chất lượng (4K, HD,...) */
+.meta-quality {
+    padding: 3px 10px;
+    background: var(--quality-bg);
+    color: var(--quality-text);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Mô tả phim (giới hạn 3 dòng) */
+.hero-desc {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    margin-bottom: 24px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* === Nút hành động (Xem ngay, Chi tiết) === */
+.hero-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+/* Nút chính - màu nổi bật */
+.btn-primary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    color: #fff;
+    border-radius: var(--radius-full);
+    font-size: 1rem;
+    font-weight: 700;
+    transition: all var(--transition);
+    box-shadow: 0 6px 25px var(--accent-glow);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 35px var(--accent-glow);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Nút phụ - nền trong suốt */
+.btn-secondary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: var(--text-primary);
+    border-radius: var(--radius-full);
+    font-size: 1rem;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    transition: all var(--transition);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateY(-2px);
+}
+
+/* === Nhãn thể loại === */
+.hero-genres {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.genre-tag {
+    padding: 5px 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    transition: all var(--transition);
+}
+
+.genre-tag:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* === Điều hướng slide (chấm tròn) === */
+.hero-nav {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 5;
+}
+
+.hero-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: all var(--transition);
+    cursor: pointer;
+}
+
+/* Chấm đang active - dài hơn */
+.hero-dot.active {
+    width: 32px;
+    border-radius: 5px;
+    background: var(--accent);
+    box-shadow: 0 2px 10px var(--accent-glow);
+}
+
+/* === Nút mũi tên trái/phải === */
+.hero-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    font-size: 1.8rem;
+    color: var(--text-primary);
+    z-index: 5;
+    transition: all var(--transition);
+    opacity: 0;
+}
+
+/* Chỉ hiện khi hover vào hero */
+.hero:hover .hero-arrow {
+    opacity: 1;
+}
+
+.hero-arrow:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    transform: translateY(-50%) scale(1.08);
+}
+
+.hero-prev {
+    left: 20px;
+}
+
+.hero-next {
+    right: 20px;
+}
