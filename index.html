@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="css/hero.css">
     <link rel="stylesheet" href="css/movies.css">
     <link rel="stylesheet" href="css/footer.css">
+    <link rel="stylesheet" href="css/detail.css">
     <link rel="stylesheet" href="css/responsive.css">
 </head>
 
@@ -31,9 +32,25 @@
     <main class="main-content" id="movieSections"></main>
     <footer class="footer" id="footer"></footer>
 
+    <!-- Detail & Player Overlay -->
+    <div id="detailPage" class="detail-page hidden">
+        <div class="detail-backdrop"></div>
+        <button class="close-detail" id="closeDetailBtn" aria-label="Đóng">✕</button>
+        <div class="detail-container">
+            <div class="detail-content" id="detailContent">
+                <!-- Nội dung chi tiết render bằng JS -->
+                <div class="loading-spinner">Đang tải...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HLS.js cho Player -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+
     <!-- JavaScript -->
     <script src="js/data.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/player.js"></script>
     <script src="js/components.js"></script>
     <script src="js/slider.js"></script>
     <script src="js/theme.js"></script>

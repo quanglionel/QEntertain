@@ -1,0 +1,331 @@
+/* ============================================
+   QPhim & QTruyện - Detail & Player Styles
+   Giao diện trang chi tiết, overlay, player video, truyện reader
+   ============================================ */
+
+/* === Overlay che toàn màn hình === */
+.detail-page {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.3s ease, visibility 0.3s;
+    overflow-y: auto;
+    /* Cho phép cuộn trang chi tiết */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0;
+}
+
+.detail-page.hidden {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Lớp nền mờ */
+.detail-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: -1;
+}
+
+/* Container nội dung */
+.detail-container {
+    width: 100%;
+    max-width: 1200px;
+    min-height: 100vh;
+    padding: 80px 20px 40px;
+    /* Top padding để tránh header */
+    position: relative;
+    animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Nút đóng */
+.close-detail {
+    position: fixed;
+    top: 20px;
+    right: 30px;
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2100;
+    transition: all 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.close-detail:hover {
+    background: var(--accent);
+    transform: rotate(90deg);
+}
+
+/* === Bố cục nội dung chi tiết === */
+.detail-header {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+/* Poster bên trái */
+.detail-poster {
+    flex: 0 0 300px;
+    width: 300px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.detail-poster img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Thông tin bên phải */
+.detail-info {
+    flex: 1;
+    color: #fff;
+}
+
+.detail-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    line-height: 1.2;
+    background: linear-gradient(to right, #fff, #ccc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.detail-org-title {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    font-style: italic;
+}
+
+/* Meta info lines */
+.detail-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.meta-badge {
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    color: #ddd;
+}
+
+.meta-badge.high {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+}
+
+/* Mô tả */
+.detail-desc {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #ccc;
+    margin-bottom: 30px;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.detail-desc.expanded {
+    -webkit-line-clamp: unset;
+}
+
+.read-more {
+    color: var(--accent);
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: inline-block;
+    margin-top: -25px;
+    margin-bottom: 30px;
+}
+
+/* Các nút hành động */
+.detail-actions {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.btn-large {
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.btn-play {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+.btn-play:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--accent-glow);
+}
+
+/* === Player / Server List === */
+.player-section {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-top: 20px;
+}
+
+/* Tabs chọn server / tập */
+.server-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.server-btn {
+    padding: 8px 16px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.server-btn:hover,
+.server-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+/* Video Player Container */
+.video-container {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    /* 16:9 Aspect Ratio */
+    background: #000;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.video-player {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Reading Mode (Truyện) */
+.reading-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    background: #000;
+}
+
+.chapter-image {
+    width: 100%;
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+/* Danh sách chương (Truyện) */
+.chapter-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 15px;
+    background: var(--bg-input);
+    border-radius: var(--radius-md);
+}
+
+.chapter-item {
+    padding: 8px;
+    text-align: center;
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    transition: background 0.2s;
+}
+
+.chapter-item:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .detail-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .detail-poster {
+        width: 200px;
+        flex: 0 0 auto;
+    }
+
+    .detail-meta-row {
+        justify-content: center;
+    }
+
+    .detail-title {
+        font-size: 1.8rem;
+    }
+
+    .detail-actions {
+        justify-content: center;
+    }
+}
