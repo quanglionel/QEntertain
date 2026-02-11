@@ -9,6 +9,7 @@ const PROXY_ROUTES = {
     '/api/truyen/': { target: 'https://otruyenapi.com/v1/api/', host: 'otruyenapi.com', cache: 300 },
     '/img/phim/': { target: 'https://img.ophim.live/uploads/movies/', host: 'img.ophim.live', cache: 86400 },
     '/img/truyen/': { target: 'https://img.otruyenapi.com/uploads/comics/', host: 'img.otruyenapi.com', cache: 86400 },
+    '/api/truyen-chapter/': { target: 'https://sv1.otruyencdn.com/v1/api/', host: 'sv1.otruyencdn.com', cache: 3600 },
 };
 
 export default {

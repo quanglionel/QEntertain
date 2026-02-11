@@ -20,11 +20,14 @@ const API = {
      */
     async fetch(url) {
         try {
+            console.log('🌐 API Req:', url);
             const res = await fetch(url);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            return await res.json();
+            if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+            const data = await res.json();
+            // console.log('✅ API Res:', data); // Uncomment nếu cần debug full data
+            return data;
         } catch (err) {
-            console.error(`❌ API lỗi: ${url}`, err);
+            console.error(`❌ API Error [${url}]:`, err);
             return null;
         }
     },
@@ -35,7 +38,7 @@ const API = {
 
     /** Lấy danh sách phim trang chủ */
     async getPhimHome() {
-        return this.fetch(`${this.phim}/home`);
+        return this.fetch(`${this.phim}/danh-sach/phim-moi-cap-nhat`);
     },
 
     /** Lấy danh sách phim có bộ lọc

@@ -160,12 +160,16 @@ async function showDetail(slug) {
 
         if (isPhim) {
             const res = await API.getPhimDetail(slug);
-            console.log('Phim Detail Res:', res);
+            console.log('Phim Detail Res:', JSON.stringify(res));
 
-            if (!res || !res.status || !res.movie) {
-                throw new Error('Không tìm thấy thông tin phim (API Error)');
+            // Check lỏng hơn: có thể API thay đổi cấu trúc
+            if (!res || (res.status === false)) {
+                throw new Error('API trả về lỗi hoặc không có dữ liệu');
             }
-            data = res.movie;
+            // Fallback nếu res.movie không có nhưng có res.data.item (giống OTruyen?)
+            data = res.movie || res.data?.item;
+
+            if (!data) throw new Error('Không tìm thấy res.movie hoặc res.data.item');
             // Gán episodes vào data để render
             data.episodes = res.episodes || [];
         } else {
@@ -265,8 +269,17 @@ window.readChap = async (apiUrl) => {
     const container = document.getElementById('mediaContainer');
     if (!container) return;
     container.innerHTML = 'Loading images...';
+
+    // Rewrite URL để qua Proxy
+    // Gốc: https://sv1.otruyencdn.com/v1/api/chapter/...
+    // Proxy: /api/truyen-chapter/chapter/...
+    let proxyUrl = apiUrl;
+    if (apiUrl.includes('sv1.otruyencdn.com/v1/api/')) {
+        proxyUrl = apiUrl.replace('https://sv1.otruyencdn.com/v1/api/', '/api/truyen-chapter/');
+    }
+
     try {
-        const res = await fetch(apiUrl);
+        const res = await fetch(proxyUrl);
         const json = await res.json();
         if (json.status === 'success') {
             const domain = json.data.domain_cdn;
@@ -303,6 +316,7 @@ async function renderAll() {
             const items = apiData.data.items;
             console.log('API loaded:', items.length);
             renderHero(items);
+            if (window.initSlider) window.initSlider();
 
             const sections = isPhim ? PHIM_SECTIONS : TRUYEN_SECTIONS;
             // Chia item đơn giản
