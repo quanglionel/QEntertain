@@ -87,5 +87,19 @@
                 }
             ]
         }
+    ],
+    "related_applications": [],
+    "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+    "display_override": [
+        "window-controls-overlay",
+        "standalone"
+    ],
+    "scope_extensions": [
+        {
+            "origin": "*.onrender.com"
+        },
+        {
+            "origin": "*.pages.dev"
+        }
     ]
 }
