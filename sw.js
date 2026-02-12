@@ -1,10 +1,25 @@
-const CACHE_NAME = 'qphim-v1';
+const CACHE_NAME = 'qphim-v2';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
-    '/css/style.css',
+    '/manifest.json',
+    '/img/icon.svg',
+    '/img/icon-192.png',
+    '/img/icon-512.png',
+
+    // CSS
+    '/css/variables.css',
+    '/css/base.css',
+    '/css/header.css',
+    '/css/hero.css',
+    '/css/movies.css',
+    '/css/footer.css',
     '/css/detail.css',
     '/css/watch.css',
+    '/css/chapter_list.css',
+    '/css/responsive.css',
+
+    // JS
     '/js/data.js',
     '/js/api.js',
     '/js/player.js',
@@ -12,8 +27,12 @@ const STATIC_ASSETS = [
     '/js/play.js',
     '/js/detail.js',
     '/js/components.js',
+    '/js/slider.js',
+    '/js/theme.js',
+    '/js/search.js',
     '/js/ui.js',
-    '/js/app.js'
+    '/js/app.js',
+    '/js/protect.js'
 ];
 
 // Install: Cache static assets
