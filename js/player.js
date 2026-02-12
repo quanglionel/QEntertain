@@ -4,49 +4,107 @@
    ============================================ */
 
 const Player = {
-    hls: null,
+    plyr: null,
 
     /**
      * Khởi tạo trình phát video
      * @param {HTMLElement} container - Nơi chứa player
      * @param {string} url - URL video (m3u8 hoặc embed)
+     * @param {Function} nextEpCallback - Hàm gọi khi hết phim (Auto Next)
      */
-    initVideo(container, url) {
-        this.destroy(); // Dọn dẹp cũ
+    initVideo(container, url, nextEpCallback, poster) {
+        console.log('🎬 initVideo:', url);
+        this.destroy();
+        if (container) container.innerHTML = '';
 
-        // Tạo container video
         const videoWrapper = document.createElement('div');
         videoWrapper.className = 'video-container';
         container.appendChild(videoWrapper);
 
-        // Kiểm tra loại link
-        if (url.includes('.m3u8')) {
+        if (url && url.includes('.m3u8')) {
             const video = document.createElement('video');
             video.className = 'video-player';
-            video.controls = true;
-            video.autoplay = true;
+            if (poster) video.poster = poster;
             video.playsInline = true;
+            video.autoplay = true;
+            video.muted = true; // Muted autoplay luôn được Chrome cho phép
             videoWrapper.appendChild(video);
 
-            if (window.Hls && Hls.isSupported()) {
-                this.hls = new Hls();
+            if (Hls.isSupported()) {
+                // ① Tạo Plyr TRƯỚC trên video trống
+                this.plyr = new Plyr(video, {
+                    autoplay: true,
+                    muted: true,
+                    controls: [
+                        'play-large', 'play', 'progress', 'current-time', 'duration',
+                        'mute', 'volume', 'settings', 'pip', 'airplay', 'fullscreen'
+                    ],
+                    settings: ['quality', 'speed']
+                });
+
+                this.plyr.on('ended', () => {
+                    if (nextEpCallback) nextEpCallback();
+                });
+
+                // Auto-unmute khi video bắt đầu phát
+                video.addEventListener('playing', () => {
+                    video.muted = false;
+                    if (this.plyr) this.plyr.muted = false;
+                }, { once: true });
+
+                // ② Tạo HLS instance
+                this.hls = new Hls({
+                    enableWorker: false,
+                    maxBufferLength: 30,
+                    maxMaxBufferLength: 60,
+                    maxBufferSize: 30 * 1000 * 1000,
+                    startLevel: -1
+                });
+
+                // Error Handling
+                this.hls.on(Hls.Events.ERROR, (event, data) => {
+                    if (data.fatal) {
+                        console.warn(`HLS Fatal: ${data.type} - ${data.details}`);
+                        switch (data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                this.hls.startLoad();
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                this.hls.recoverMediaError();
+                                break;
+                            default:
+                                this.hls.destroy();
+                                break;
+                        }
+                    }
+                });
+
+                // ③ Khi manifest parsed → log qualities
+                this.hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+                    console.log('📋 Qualities:', this.hls.levels.map(l => l.height));
+                });
+
+                // ④ Load source + attach media SAU KHI Plyr đã wrap xong
                 this.hls.loadSource(url);
                 this.hls.attachMedia(video);
-                this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    video.play().catch(() => console.log('Autoplay blocked'));
-                });
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 // Safari native HLS
                 video.src = url;
-                video.addEventListener('loadedmetadata', () => {
-                    video.play().catch(() => console.log('Autoplay blocked'));
+                this.plyr = new Plyr(video, defaultOptions);
+
+                this.plyr.on('ended', () => {
+                    if (nextEpCallback) nextEpCallback();
                 });
             } else {
                 videoWrapper.innerHTML = '<p style="color:#fff;text-align:center;padding:20px;">Trình duyệt không hỗ trợ phát video này.</p>';
             }
         } else {
-            // Embed Iframe
-            videoWrapper.innerHTML = `<iframe src="${url}" class="video-player" frameborder="0" allowfullscreen allow="autoplay; encrypted-media"></iframe>`;
+            // Embed Iframe (Basic support)
+            videoWrapper.innerHTML = `<div class="plyr__video-embed" id="player">
+                <iframe src="${url}" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+            </div>`;
+            // Init Plyr for Iframe (YouTube/Vimeo only usually, but generic might work for UI)
+            // Note: Custom embeds might not work perfectly with Plyr UI overlays.
         }
 
         // Cuộn xuống player
@@ -344,18 +402,38 @@ const Player = {
      * Dọn dẹp player/reader
      */
     destroy() {
+        // ⚠️ QUAN TRỌNG: Phải detach video src TRƯỚC khi destroy HLS
+        // Nếu không, blob URL của MediaSource bị revoke trong khi browser
+        // vẫn đang load → gây lỗi GET blob:ERR_FILE_NOT_FOUND
         if (this.hls) {
+            const video = this.hls.media;
+            if (video) {
+                video.pause();
+                video.removeAttribute('src');
+                video.load(); // Reset trạng thái video
+            }
             this.hls.destroy();
             this.hls = null;
         }
-        // Cleanup reader elements (progress bar, scroll-to-top button)
+        if (this.plyr) {
+            this.plyr.destroy();
+            this.plyr = null;
+        }
+
+        // Cleanup reader elements
         if (this._readerCleanup) {
             this._readerCleanup();
             this._readerCleanup = null;
         }
-        // Clear media container
-        const media = document.getElementById('mediaContainer');
-        if (media) media.innerHTML = '';
+
+        // Clear DOM containers
+        const clear = (id) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = '';
+        };
+        clear('mediaContainer');
+        clear('watchPlayerContainer');
+        clear('readerContainer');
     }
 };
 

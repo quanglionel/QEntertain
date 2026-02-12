@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
     <meta name="description" content="QPhim - Xem phim trực tuyến miễn phí, chất lượng cao">
     <title>QPhim - Xem Phim Online</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
@@ -15,6 +16,7 @@
     <link rel="stylesheet" href="css/movies.css">
     <link rel="stylesheet" href="css/footer.css">
     <link rel="stylesheet" href="css/detail.css">
+    <link rel="stylesheet" href="css/watch.css">
     <link rel="stylesheet" href="css/chapter_list.css">
     <link rel="stylesheet" href="css/responsive.css">
 </head>
@@ -23,12 +25,7 @@
     <!-- Các container - nội dung render bằng JS -->
     <header class="header" id="header"></header>
 
-    <section class="hero" id="hero">
-        <div class="hero-slides" id="heroSlides"></div>
-        <div class="hero-nav" id="heroNav"></div>
-        <button class="hero-arrow hero-prev" id="heroPrev" aria-label="Trước">‹</button>
-        <button class="hero-arrow hero-next" id="heroNext" aria-label="Sau">›</button>
-    </section>
+
 
     <main class="main-content" id="movieSections"></main>
     <footer class="footer" id="footer"></footer>
@@ -45,11 +42,39 @@
         </div>
     </div>
 
+    <!-- Watch Page (Xem phim - tách biệt) -->
+    <div id="watchPage" class="watch-page hidden">
+        <div class="watch-header">
+            <button class="watch-back-btn" id="watchBackBtn">← Quay lại</button>
+            <h2 class="watch-title" id="watchTitle">Loading...</h2>
+        </div>
+        <div class="watch-content">
+            <div class="watch-main">
+                <div id="watchPlayerContainer" class="video-container-fullscreen"></div>
+            </div>
+            <div class="watch-sidebar">
+                <div class="sidebar-header">
+                    <h3>Danh sách tập</h3>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoNextToggle" checked>
+                        <span class="slider round"></span>
+                        <span class="label-text">Auto Next</span>
+                    </label>
+                </div>
+                <div id="watchEpisodeList" class="episode-list-vertical"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Reader Overlay (đọc truyện - toàn màn hình, tách biệt detail) -->
     <div id="readerPage" class="reader-page hidden">
         <button class="reader-back-btn" id="readerBackBtn" aria-label="Quay lại">← Quay lại</button>
         <div id="readerContainer" class="reader-full-container"></div>
     </div>
+
+    <!-- Plyr Player -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 
     <!-- HLS.js cho Player -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
@@ -58,6 +83,9 @@
     <script src="js/data.js"></script>
     <script src="js/api.js"></script>
     <script src="js/player.js"></script>
+    <script src="js/history.js"></script>
+    <script src="js/play.js"></script>
+    <script src="js/detail.js"></script>
     <script src="js/components.js"></script>
     <script src="js/slider.js"></script>
     <script src="js/theme.js"></script>

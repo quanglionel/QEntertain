@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAllEvents();
 
     // 3. Bắt đầu slider tự động
-    startAutoSlide();
+    // startAutoSlide();
 
     console.log(`🎬📚 QPhim & QTruyện đã khởi tạo! Mode: ${currentMode}`);
 });

@@ -12,6 +12,7 @@ const ICONS = {
     book: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
     history: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
     category: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
+    close: '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>'
 };
 
 // === Cấu hình 2 chế độ ===
@@ -23,10 +24,11 @@ const APP_MODES = {
         searchPlaceholder: "Tìm phim, diễn viên...",
         navLinks: [
             { label: "Trang chủ", section: "home", active: true },
-            { label: "Phim lẻ", section: "movies", active: false },
-            { label: "Phim bộ", section: "series", active: false },
-            { label: "Anime", section: "anime", active: false },
+            { label: "Phim lẻ", section: "phim-le", active: false },
+            { label: "Phim bộ", section: "phim-bo", active: false },
+            { label: "Anime", section: "hoat-hinh", active: false },
             { label: "Thể loại", section: "genres", active: false },
+            { label: "Lịch sử", section: "history", active: false },
         ],
     },
     truyen: {

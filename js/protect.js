@@ -3,13 +3,19 @@
    Chặn chuột phải, F12, Ctrl+U để hạn chế xem source
    ============================================ */
 
+// Config enable/disable protection
+window.appConfig = { protect: false };
+
 // 1. Chặn chuột phải (Context Menu)
 document.addEventListener('contextmenu', function (e) {
+    if (!window.appConfig.protect) return;
     e.preventDefault();
 }, false);
 
 // 2. Chặn các phím tắt Developer Tools
 document.addEventListener('keydown', function (e) {
+    if (!window.appConfig.protect) return;
+
     // F12
     if (e.key === 'F12' || e.keyCode === 123) {
         e.preventDefault();
