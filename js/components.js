@@ -274,9 +274,57 @@ function renderList(containerId, items) {
 function renderSections() {
     const container = document.getElementById('movieSections');
     if (!container) return;
+    container.innerHTML = '';
 
+    const isTruyen = currentMode === 'truyen';
+
+    // 1. Render Lịch sử (Nếu có & là Truyện)
+    if (isTruyen) {
+        const history = JSON.parse(localStorage.getItem('qhub-history') || '[]');
+        if (history.length > 0) {
+            const items = history.slice(0, 10); // Lấy 10 truyện gần nhất
+
+            const section = document.createElement('section');
+            section.className = 'movie-section';
+            section.innerHTML = `
+                <div class="section-header">
+                    <h2 class="section-title">🕒 Đọc tiếp</h2>
+                    <button class="see-all" onclick="handleNav('history')">Xem tất cả</button>
+                </div>
+                <div class="movie-list" id="homeHistoryList"></div>
+            `;
+            container.appendChild(section);
+
+            const list = section.querySelector('#homeHistoryList');
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+                // Click vào là đọc tiếp luôn chapter đó
+                card.onclick = () => readChap(item.chapter_api_data);
+
+                const imgUrl = API.getTruyenImageUrl(item.thumb_url);
+
+                card.innerHTML = `
+                    <div class="movie-poster">
+                        <img class="movie-poster-img" src="${imgUrl}" loading="lazy" onerror="this.parentElement.style.backgroundColor='#333'">
+                        <div class="movie-poster-overlay">
+                            <div class="play-icon">${ICONS.book}</div>
+                        </div>
+                        <span class="movie-quality" style="background:var(--accent);">Ch.${item.chapter_name}</span>
+                    </div>
+                    <div class="movie-info">
+                        <h3 class="movie-title">${item.name}</h3>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+    }
+
+    // 2. Render các section chính
     const sections = currentMode === 'phim' ? PHIM_SECTIONS : TRUYEN_SECTIONS;
-    container.innerHTML = sections.map(section => `
+    // Append tiếp các section khác
+    const mainHTML = sections.map(section => `
         <section class="movie-section">
             <div class="section-header">
                 <h2 class="section-title">${section.title}</h2>
@@ -290,6 +338,9 @@ function renderSections() {
             </div>
         </section>
     `).join('');
+
+    // Dùng insertAdjacentHTML để không mất section Lịch sử đã append
+    container.insertAdjacentHTML('beforeend', mainHTML);
 }
 
 // Hàm cuộn danh sách (Global)
