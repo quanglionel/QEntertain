@@ -1,24 +1,91 @@
 {
+    "id": "/",
     "name": "QPhim & QTruyện",
     "short_name": "QPhim",
-    "description": "Xem phim Anime & đọc truyện tranh miễn phí",
+    "description": "Xem phim Anime & đọc truyện tranh miễn phí, chất lượng cao. Không quảng cáo.",
     "start_url": "/",
+    "scope": "/",
     "display": "standalone",
     "orientation": "any",
     "background_color": "#0a0a0a",
     "theme_color": "#7b61ff",
-    "icons": [
-        {
-            "src": "/img/icon.svg",
-            "sizes": "any",
-            "type": "image/svg+xml",
-            "purpose": "any maskable"
-        }
-    ],
+    "lang": "vi",
+    "dir": "ltr",
     "categories": [
         "entertainment",
         "video"
     ],
-    "lang": "vi",
-    "dir": "ltr"
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "/img/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/img/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/img/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/img/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/img/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/img/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "QPhim - Xem phim Anime online"
+        },
+        {
+            "src": "/img/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "QPhim - Xem phim trên điện thoại"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Xem Phim",
+            "short_name": "Phim",
+            "url": "/?mode=phim",
+            "icons": [
+                {
+                    "src": "/img/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Đọc Truyện",
+            "short_name": "Truyện",
+            "url": "/?mode=truyen",
+            "icons": [
+                {
+                    "src": "/img/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ]
 }
