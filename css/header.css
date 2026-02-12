@@ -143,67 +143,68 @@
     position: relative;
     display: flex;
     align-items: center;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    padding: 2px 4px 2px 16px;
+    transition: all var(--transition);
 }
 
-/* Nút bật/tắt ô tìm kiếm */
+.search-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+    background: var(--bg-input-focus);
+}
+
+/* Nút tìm kiếm (bên phải) */
 .search-toggle {
-    position: relative;
-    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
-    border-radius: var(--radius-full);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     color: var(--text-secondary);
     transition: all var(--transition);
     background: transparent;
-    /* Đảm bảo nền trong suốt */
     border: none;
     cursor: pointer;
 }
 
 .search-toggle:hover {
-    color: var(--text-primary);
-    background: var(--bg-input);
+    color: var(--accent);
+    background: rgba(255, 255, 255, 0.05);
 }
 
-/* Ô nhập tìm kiếm (ẩn mặc định) */
+/* Ô nhập tìm kiếm (hiển thị cố định) */
 .search-input {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0;
+    width: 200px;
+    height: 36px;
+    border: none;
+    background: transparent;
     padding: 0;
-    background: var(--bg-input);
-    border: 1px solid transparent;
-    border-radius: var(--radius-full);
     color: var(--text-primary);
     font-family: inherit;
     font-size: 0.9rem;
-    transition: all var(--transition);
-    opacity: 0;
     outline: none;
 }
 
-/* Ô tìm kiếm khi mở rộng */
-.search-box.active .search-input {
-    width: 280px !important;
-    padding: 10px 20px 10px 44px;
-    opacity: 1 !important;
-    visibility: visible !important;
-    border-color: var(--border-hover);
-    background: var(--bg-input);
-    /* Đảm bảo có nền */
-    z-index: 5;
+/* Responsive: Thu nhỏ input trên mobile */
+@media (max-width: 768px) {
+    .search-input {
+        width: 140px;
+    }
 }
 
-/* Ô tìm kiếm khi focus */
-.search-box.active .search-input:focus {
-    background: var(--bg-input-focus);
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow);
+@media (max-width: 480px) {
+    .search-input {
+        width: 120px;
+        font-size: 0.85rem;
+    }
+
+    .header-inner {
+        padding: 0 12px;
+    }
 }
 
 /* === Nút chuyển đổi Theme === */

@@ -53,9 +53,129 @@ function renderHeader() {
                 if (tab.dataset.mode !== currentMode) switchMode(tab.dataset.mode);
             };
         });
+
+        // Event click nav links
+        header.querySelectorAll('.nav-link').forEach(link => {
+            link.onclick = (e) => {
+                e.preventDefault();
+                // Active state
+                header.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+
+                const section = link.dataset.section;
+                const label = link.textContent;
+                handleNav(section, label);
+            };
+        });
+
     } catch (e) {
         console.error('Render Header Error', e);
     }
+}
+
+// === Xử lý Navigation ===
+window.handleNav = async (section, label) => {
+    // 1. Home: Reload lại trang chủ
+    if (section === 'home') {
+        renderAll();
+        return;
+    }
+
+    // 2. Ẩn Hero & Xóa nội dung cũ
+    const hero = document.getElementById('hero');
+    if (hero) hero.style.display = 'none';
+
+    const main = document.getElementById('movieSections');
+    if (!main) return;
+
+    main.innerHTML = `
+        <div class="loading-spinner-container" style="padding:100px 0;text-align:center;">
+            <div class="loading-spinner"></div>
+            <p style="margin-top:10px;color:var(--text-muted);">Đang tải ${label}...</p>
+        </div>
+    `;
+    main.style.paddingTop = '80px'; // Header height
+
+    try {
+        // 3. Xử lý Thể loại
+        if (section === 'genres') {
+            const apiRes = currentMode === 'phim'
+                ? await API.getPhimCategories()
+                : await API.getTruyenCategories();
+
+            if (apiRes?.data?.items) {
+                renderGenreList(apiRes.data.items);
+            } else {
+                main.innerHTML = '<p class="text-center p-5">Không tải được danh sách thể loại.</p>';
+            }
+            return;
+        }
+
+        // 4. Xử lý Danh mục (Manga, Manhwa...)
+        let items = [];
+        // Gọi API tương ứng
+        // Kiểm tra xem section có phải là một loại danh sách không
+        const isListType = ['phim-le', 'phim-bo', 'hoat-hinh', 'tv-shows', 'truyen-moi', 'sap-ra-mat', 'dang-phat-hanh', 'hoan-thanh'].includes(section);
+
+        let res;
+        if (isListType) {
+            res = currentMode === 'phim'
+                ? await API.getPhimList(section)
+                : await API.getTruyenList(section);
+        } else {
+            // Ngược lại thử gọi theo thể loại (category)
+            res = currentMode === 'phim'
+                ? await API.getPhimByCategory(section)
+                : await API.getTruyenByCategory(section);
+        }
+
+        if (res?.data?.items) {
+            items = res.data.items;
+
+            // Render Grid View
+            main.innerHTML = `
+                <section class="movie-section">
+                    <div class="section-header">
+                        <h2 class="section-title">${label}</h2>
+                    </div>
+                    <div class="movie-grid" id="gridContent"></div>
+                </section>
+            `;
+
+            const grid = document.getElementById('gridContent');
+            if (items.length === 0) {
+                grid.innerHTML = '<p>Chưa có dữ liệu.</p>';
+            } else {
+                items.forEach(item => {
+                    grid.appendChild(createCard(item));
+                });
+            }
+        } else {
+            main.innerHTML = `<p style="text-align:center;padding:50px;">Không tìm thấy dữ liệu cho mục "${label}".</p>`;
+        }
+
+    } catch (e) {
+        console.error(e);
+        main.innerHTML = `<p style="text-align:center;padding:50px;color:red;">Lỗi tải dữ liệu: ${e.message}</p>`;
+    }
+};
+
+function renderGenreList(genres) {
+    const main = document.getElementById('movieSections');
+    main.innerHTML = `
+        <section class="movie-section">
+            <div class="section-header"><h2 class="section-title">Danh sách Thể loại</h2></div>
+            <div class="genre-grid-page" id="genreGrid"></div>
+        </section>
+    `;
+    const grid = document.getElementById('genreGrid');
+    genres.forEach(g => {
+        const btn = document.createElement('button');
+        btn.className = 'genre-tag-large';
+        btn.textContent = g.name;
+        btn.onclick = () => handleNav(g.slug, g.name);
+        grid.appendChild(btn);
+    });
 }
 
 /* === HERO === */

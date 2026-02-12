@@ -75,42 +75,14 @@ function initSearchBox() {
         return;
     }
 
-    // Toggle Input
+    // Toggle Input -> Giờ là nút Submit tìm kiếm
     searchToggle.addEventListener('click', (e) => {
-        console.log('🔍 Click Search Toggle!');
         e.stopPropagation();
-
-        searchBox.classList.toggle('active');
-
-        const isActive = searchBox.classList.contains('active');
-        console.log('Search Box Active State:', isActive);
-
-        if (isActive) {
-            console.log('Trying to focus input...');
-
-            // Ép hiển thị bằng Inline Style (Fix lỗi CSS Cache)
-            Object.assign(searchInput.style, {
-                visibility: 'visible',
-                opacity: '1',
-                width: '280px',
-                padding: '10px 20px 10px 44px',
-                background: 'var(--bg-input)',
-                border: '1px solid var(--accent)',
-                right: '0',
-                position: 'absolute',
-                zIndex: '5'
-            });
-
-            searchInput.focus();
+        const query = searchInput.value.trim();
+        if (query) {
+            performSearch(query, resultsContainer);
         } else {
-            resultsContainer.classList.remove('show');
-            // Ẩn lại
-            Object.assign(searchInput.style, {
-                width: '0',
-                opacity: '0',
-                visibility: 'hidden',
-                padding: '0'
-            });
+            searchInput.focus();
         }
     });
 
@@ -130,53 +102,52 @@ function initSearchBox() {
     // Close when click outside
     document.addEventListener('click', (e) => {
         if (!searchBox.contains(e.target)) {
-            searchBox.classList.remove('active');
+            // searchBox.classList.remove('active'); // Không cần thiết nữa
             resultsContainer.classList.remove('show');
         }
     });
 }
 
 // Hàm tìm kiếm chính
+// Hàm tìm kiếm chính
 async function performSearch(query, container) {
     const isPhim = localStorage.getItem('qhub-mode') !== 'truyen';
-    const apiUrl = isPhim
-        ? `/api/phim/tim-kiem?keyword=${encodeURIComponent(query)}`
-        : `/api/truyen/tim-kiem?keyword=${encodeURIComponent(query)}`;
 
-    container.innerHTML = '<div class="loading-spinner">Đang tìm...</div>';
+    container.innerHTML = '<div class="loading-spinner" style="padding:20px;text-align:center;">Đang tìm...</div>';
     container.classList.add('show');
 
     try {
-        const res = await fetch(apiUrl);
-        const json = await res.json();
-        const items = json.data?.items || [];
+        let res;
+        if (isPhim) {
+            res = await API.searchPhim(query);
+        } else {
+            res = await API.searchTruyen(query);
+        }
+
+        const items = res?.data?.items || [];
 
         if (items.length === 0) {
-            container.innerHTML = '<div style="padding:15px;text-align:center;color:#888;">Không tìm thấy kết quả</div>';
+            container.innerHTML = '<div style="padding:15px;text-align:center;color:var(--text-muted);">Không tìm thấy kết quả</div>';
             return;
         }
 
         // Render items
         container.innerHTML = items.map(item => {
-            let imgUrl = item.thumb_url;
-            if (!imgUrl.startsWith('http')) {
-                // Dùng Nginx proxy thay vì domain gốc (tránh CORS/blocked)
-                const proxyPath = isPhim ? '/img/phim' : '/img/truyen';
-                imgUrl = `${proxyPath}/${item.thumb_url}`;
-            } else {
-                // Nếu URL đầy đủ, rewrite qua proxy
-                imgUrl = imgUrl
-                    .replace('https://img.ophim.live/uploads/movies', '/img/phim')
-                    .replace('https://img.otruyenapi.com/uploads/comics', '/img/truyen');
-            }
-            const meta = isPhim ? (item.year || 'N/A') : (item.status === 'completed' ? 'Hoàn thành' : 'Đang ra');
+            const imgUrl = isPhim
+                ? API.getPhimImageUrl(item.thumb_url)
+                : API.getTruyenImageUrl(item.thumb_url);
+
+            const meta = isPhim
+                ? (item.year || 'N/A')
+                : (item.status === 'completed' ? 'Hoàn thành' : 'Đang ra');
+
             const sub = isPhim
                 ? `<span style="color:${item.lang?.includes('Vietsub') ? '#00d4aa' : '#fbbf24'}">${item.lang || ''}</span>`
                 : `${item.chaptersLatest ? item.chaptersLatest.length + ' chương' : 'Nhiều chương'}`;
 
             return `
                 <div class="search-item" onclick="selectSearchResult('${item.slug}')">
-                    <img src="${imgUrl}" class="s-thumb" onerror="this.style.background='#333';this.alt='Ảnh lỗi'">
+                    <img src="${imgUrl}" class="s-thumb" onerror="this.style.background='#333';this.style.display='none'">
                     <div class="s-info">
                         <div class="s-title">${item.name}</div>
                         <div class="s-meta">${item.origin_name || ''}</div>
@@ -188,7 +159,7 @@ async function performSearch(query, container) {
 
     } catch (e) {
         console.error('Search Error:', e);
-        container.innerHTML = '<div style="padding:15px;text-align:center;color:#f55;">Lỗi tìm kiếm</div>';
+        container.innerHTML = '<div style="padding:15px;text-align:center;color:#f55;">Lỗi kết nối</div>';
     }
 }
 
