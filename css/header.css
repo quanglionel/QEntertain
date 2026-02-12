@@ -147,6 +147,8 @@
 
 /* Nút bật/tắt ô tìm kiếm */
 .search-toggle {
+    position: relative;
+    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -155,6 +157,10 @@
     border-radius: var(--radius-full);
     color: var(--text-secondary);
     transition: all var(--transition);
+    background: transparent;
+    /* Đảm bảo nền trong suốt */
+    border: none;
+    cursor: pointer;
 }
 
 .search-toggle:hover {
@@ -183,10 +189,14 @@
 
 /* Ô tìm kiếm khi mở rộng */
 .search-box.active .search-input {
-    width: 280px;
+    width: 280px !important;
     padding: 10px 20px 10px 44px;
-    opacity: 1;
+    opacity: 1 !important;
+    visibility: visible !important;
     border-color: var(--border-hover);
+    background: var(--bg-input);
+    /* Đảm bảo có nền */
+    z-index: 5;
 }
 
 /* Ô tìm kiếm khi focus */

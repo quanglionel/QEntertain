@@ -32,7 +32,7 @@
     <main class="main-content" id="movieSections"></main>
     <footer class="footer" id="footer"></footer>
 
-    <!-- Detail & Player Overlay -->
+    <!-- Detail Overlay (thông tin truyện/phim) -->
     <div id="detailPage" class="detail-page hidden">
         <div class="detail-backdrop"></div>
         <button class="close-detail" id="closeDetailBtn" aria-label="Đóng">✕</button>
@@ -42,6 +42,12 @@
                 <div class="loading-spinner">Đang tải...</div>
             </div>
         </div>
+    </div>
+
+    <!-- Reader Overlay (đọc truyện - toàn màn hình, tách biệt detail) -->
+    <div id="readerPage" class="reader-page hidden">
+        <button class="reader-back-btn" id="readerBackBtn" aria-label="Quay lại">← Quay lại</button>
+        <div id="readerContainer" class="reader-full-container"></div>
     </div>
 
     <!-- HLS.js cho Player -->

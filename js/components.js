@@ -4,7 +4,7 @@
    ============================================ */
 
 const currentMode = localStorage.getItem('qhub-mode') || 'phim';
-let currentDetailData = null; // Lưu dữ liệu chi tiết
+window.currentDetailData = null; // Lưu dữ liệu chi tiết (global để reader dùng)
 
 function getModeConfig() { return APP_MODES[currentMode]; }
 
@@ -37,11 +37,15 @@ function renderHeader() {
                 </div>
                 <div class="header-right">
                     <div class="search-box">
+                        <input type="text" class="search-input" placeholder="Tìm kiếm phim, truyện...">
                         <button class="search-toggle">${ICONS.search}</button>
                     </div>
                 </div>
             </div>
         `;
+
+        // Khởi tạo chức năng tìm kiếm
+        if (window.initSearchBox) window.initSearchBox();
 
         // Events
         header.querySelectorAll('.mode-tab').forEach(tab => {
@@ -185,7 +189,7 @@ async function showDetail(slug) {
             if (!data) throw new Error('Không tìm thấy res.movie hoặc res.data.item');
 
             // Lưu data để dùng cho Next/Prev
-            currentDetailData = data;
+            window.currentDetailData = data;
 
             // Gán episodes vào data để render
             data.episodes = res.episodes || [];
@@ -193,7 +197,7 @@ async function showDetail(slug) {
             const res = await API.getTruyenDetail(slug);
             if (!res.data) throw new Error('Lỗi tải truyện');
             data = res.data.item;
-            currentDetailData = data; // Lưu data
+            window.currentDetailData = data; // Lưu data
         }
 
         renderDetailContent(data, isPhim);
@@ -270,7 +274,7 @@ function renderListButtons(item, isPhim) {
                 const btn = document.createElement('button');
                 btn.className = 'server-btn';
                 btn.innerText = chap.chapter_name;
-                // Gọi API với URL chapter
+                btn.dataset.apiUrl = chap.chapter_api_data; // Dùng cho highlight
                 btn.onclick = () => readChap(chap.chapter_api_data);
                 list.appendChild(btn);
             });
@@ -285,77 +289,62 @@ window.playEp = (url) => {
 };
 
 window.readChap = async (apiUrl, scrollToTop = false) => {
-    const container = document.getElementById('mediaContainer');
-    if (!container) return;
+    const readerPage = document.getElementById('readerPage');
+    const container = document.getElementById('readerContainer');
+    if (!container || !readerPage) return;
 
-    // Nếu gọi từ Nav Button, cuộn lên đầu trước khi loading
-    if (scrollToTop) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Mở reader page, ẩn detail page
+    readerPage.classList.remove('hidden');
+    document.getElementById('detailPage')?.classList.add('hidden');
 
     container.innerHTML = '<div class="loading-spinner">Đang tải trang...</div>';
 
-    // Rewrite URL để qua Proxy
-    // Gốc: https://sv1.otruyencdn.com/v1/api/chapter/...
-    // Proxy: /api/truyen-chapter/v1/api/chapter/...
-    let proxyUrl = apiUrl;
-    if (apiUrl.includes('sv1.otruyencdn.com')) {
-        proxyUrl = apiUrl.replace('https://sv1.otruyencdn.com', '/api/truyen-chapter');
+    // Nút quay lại → đóng reader, mở lại detail
+    const backBtn = document.getElementById('readerBackBtn');
+    if (backBtn) {
+        backBtn.onclick = () => {
+            readerPage.classList.add('hidden');
+            document.getElementById('detailPage')?.classList.remove('hidden');
+            Player.destroy();
+            container.innerHTML = '';
+        };
     }
 
-    console.log('Fetching Chapter Proxy:', proxyUrl);
-
     try {
-        const res = await fetch(proxyUrl);
-        const json = await res.json();
-
-        console.log('Chapter Data:', json); // Debug
+        const json = await API.getTruyenChapter(apiUrl);
 
         if (json.status === 'success') {
-            const domain = json.data.domain_cdn;
+            let domain = json.data.domain_cdn;
+            if (domain.includes('sv1.otruyencdn.com')) {
+                domain = domain.replace('https://sv1.otruyencdn.com', '/api/truyen-chapter');
+            }
+
             const path = json.data.item.chapter_path;
             const images = json.data.item.chapter_image.map(i => `${domain}/${path}/${i.image_file}`);
 
-            console.log('Images List:', images.length);
-
-            // Tìm Next/Prev Chapter
+            // Tìm Nav + tên chương (1 lần duyệt duy nhất)
             let nav = { prev: null, next: null };
+            let currentChapterName = '';
 
-            if (window.currentDetailData && window.currentDetailData.chapters) {
+            if (window.currentDetailData?.chapters) {
                 const all = [];
                 window.currentDetailData.chapters.forEach(s => {
                     if (s.server_data) all.push(...s.server_data);
                 });
-                // Find index
                 const idx = all.findIndex(c => c.chapter_api_data === apiUrl);
-                console.log('Current Chap Index:', idx);
-
                 if (idx !== -1) {
-                    // Next (mới hơn): index - 1 (vì list thường mới nhất ở trên)
-                    // Prev (cũ hơn): index + 1
-                    if (idx > 0) nav.next = all[idx - 1].chapter_api_data;
-                    if (idx < all.length - 1) nav.prev = all[idx + 1].chapter_api_data;
+                    if (idx > 0) nav.prev = all[idx - 1].chapter_api_data;
+                    if (idx < all.length - 1) nav.next = all[idx + 1].chapter_api_data;
+                    currentChapterName = `Ch. ${all[idx].chapter_name}`;
                 }
             }
 
-            // Gọi Player initReader với Nav
             if (window.Player) {
-                console.log('Calling Player.initReader...');
-                Player.initReader(container, images, nav);
-
-                // Highlight button active trong list server
-                document.querySelectorAll('#serverList .server-btn').forEach(btn => {
-                    // Check bằng string compare
-                    if (btn.innerText && btn.onclick && btn.onclick.toString().includes(apiUrl)) {
-                        btn.classList.add('active');
-                    } else {
-                        // Simple approach: remove all active first then set current?
-                        btn.classList.remove('active');
-                    }
-                });
-                // Set active correctly
-                // NOTE: logic highlight ở trên hơi sơ sài, nhưng tạm chấp nhận.
+                Player._currentApiUrl = apiUrl;
+                Player.initReader(container, images, nav, currentChapterName);
+                container.scrollTo({ top: 0, behavior: 'instant' });
             } else {
-                console.error('Window.Player is undefined!');
-                container.innerHTML = 'Lỗi: Không tìm thấy trình đọc (Player JS missing).';
+                container.innerHTML = 'Lỗi: Không tìm thấy trình đọc.';
             }
         } else {
             container.innerHTML = `<div class="error-msg">Lỗi API: ${json.message || 'Unknown'}</div>`;
@@ -373,6 +362,83 @@ function switchMode(mode) {
     // Reload page to apply changes cleanly (simple approach)
     location.reload();
 }
+
+/* === GENRES SECTION === */
+async function renderGenresSection() {
+    const container = document.getElementById('movieSections');
+    if (!container) return;
+
+    const isPhim = currentMode === 'phim';
+
+    // Fetch danh sách thể loại
+    const res = isPhim ? await API.getPhimCategories() : await API.getTruyenCategories();
+    if (!res || !res.data?.items) return;
+
+    const genres = res.data.items;
+    if (genres.length === 0) return;
+
+    // Tạo section thể loại
+    const section = document.createElement('section');
+    section.className = 'movie-section';
+    section.id = 'genresSection';
+    section.innerHTML = `
+        <div class="section-header">
+            <h2 class="section-title">📂 Thể loại</h2>
+        </div>
+        <div class="genres-grid" id="genresTags"></div>
+        <div id="genreResults"></div>
+    `;
+    container.appendChild(section);
+
+    // Render genre tags
+    const tagsContainer = section.querySelector('#genresTags');
+    genres.forEach(g => {
+        const tag = document.createElement('span');
+        tag.className = 'genre-tag';
+        tag.textContent = g.name;
+        tag.dataset.slug = g.slug;
+        tag.onclick = () => loadGenre(g.slug, g.name, tag);
+        tagsContainer.appendChild(tag);
+    });
+}
+
+async function loadGenre(slug, name, tagEl) {
+    // Highlight tag đang chọn
+    document.querySelectorAll('.genre-tag').forEach(t => t.classList.remove('active'));
+    if (tagEl) tagEl.classList.add('active');
+
+    const resultsDiv = document.getElementById('genreResults');
+    if (!resultsDiv) return;
+
+    resultsDiv.innerHTML = '<div class="loading-spinner">Đang tải...</div>';
+
+    const isPhim = currentMode === 'phim';
+    const res = isPhim
+        ? await API.getPhimByCategory(slug)
+        : await API.getTruyenByCategory(slug);
+
+    if (!res || !res.data?.items || res.data.items.length === 0) {
+        resultsDiv.innerHTML = '<div style="padding:20px;color:#888;text-align:center;">Không có kết quả</div>';
+        return;
+    }
+
+    // Render grid kết quả
+    resultsDiv.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'genre-results';
+
+    res.data.items.forEach(item => {
+        grid.appendChild(createCard(item));
+    });
+
+    resultsDiv.appendChild(grid);
+
+    // Cuộn xuống kết quả
+    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Expose cho global
+window.loadGenre = loadGenre;
 
 window.showDetail = showDetail;
 window.switchMode = switchMode;
@@ -415,6 +481,9 @@ async function renderAll() {
 
                 renderList(sec.listId, secItems);
             });
+
+            // Render thể loại section
+            renderGenresSection();
         } else {
             console.log('No API Data');
         }

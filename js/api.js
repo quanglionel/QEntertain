@@ -20,7 +20,6 @@ const API = {
      */
     async fetch(url) {
         try {
-            console.log('🌐 API Req:', url);
             const res = await fetch(url);
             if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
             const data = await res.json();
@@ -148,5 +147,23 @@ const API = {
         if (!thumbUrl) return '';
         if (thumbUrl.startsWith('http')) return thumbUrl;
         return `${this.imgTruyen}/${thumbUrl}`;
+    },
+    /**
+     * Lấy nội dung chương (danh sách ảnh)
+     * @param {string} apiUrl - URL API gốc (từ chapter_api_data)
+     * @returns {Promise<Object>} - Dữ liệu JSON chứa link ảnh
+     */
+    async getTruyenChapter(apiUrl) {
+        if (!apiUrl) return null;
+
+        // Rewrite URL để chạy qua Nginx Proxy
+        // Gốc: https://sv1.otruyencdn.com/v1/api/chapter/...
+        // Proxy: /api/truyen-chapter/v1/api/chapter/...
+        let url = apiUrl;
+        if (url.includes('sv1.otruyencdn.com')) {
+            url = url.replace('https://sv1.otruyencdn.com', '/api/truyen-chapter');
+        }
+
+        return this.fetch(url);
     },
 };

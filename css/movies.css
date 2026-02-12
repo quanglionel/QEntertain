@@ -318,3 +318,58 @@ img.movie-poster-img {
     font-size: 0.9rem;
     font-style: italic;
 }
+
+/* === Genres Grid (Thể loại) === */
+.genres-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 0;
+}
+
+.genre-tag {
+    padding: 8px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.genre-tag:hover,
+.genre-tag.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+/* Grid kết quả theo thể loại */
+.genre-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.genre-results .movie-card {
+    flex: none;
+    width: 100%;
+}
+
+@media (max-width: 480px) {
+    .genre-results {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 10px;
+    }
+
+    .genre-tag {
+        padding: 6px 14px;
+        font-size: 0.82rem;
+    }
+}

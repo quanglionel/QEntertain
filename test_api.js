@@ -76,6 +76,26 @@ function testEndpoint(path) {
                 console.log('✅ PASS: Comic content detected');
                 if (detail.data.item.chapters && detail.data.item.chapters.length > 0) {
                     console.log(`✅ PASS: Found chapters`);
+
+                    // Test Chapter Content
+                    const firstChap = detail.data.item.chapters[0].server_data[0];
+                    let chapApi = firstChap.chapter_api_data;
+                    console.log(`   Testing Chapter: ${firstChap.chapter_name}`);
+
+                    if (chapApi.includes('sv1.otruyencdn.com')) {
+                        const proxyUrl = chapApi.replace('https://sv1.otruyencdn.com', '/truyen-chapter');
+                        const chapContent = await testEndpoint(proxyUrl);
+
+                        if (chapContent && chapContent.status === 'success') {
+                            console.log(`✅ PASS: Chapter Content Loaded`);
+                            console.log(`   Images: ${chapContent.data.item.chapter_image.length} files`);
+                            console.log(`   CDN: ${chapContent.data.domain_cdn}`);
+                        } else {
+                            console.log('❌ FAIL: Chapter Content Error');
+                        }
+                    } else {
+                        console.log('⚠️ WARN: Chapter URL not from expected CDN, skipping proxy test');
+                    }
                 } else {
                     console.log('⚠️ WARN: No chapters found');
                 }

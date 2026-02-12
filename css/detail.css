@@ -261,19 +261,385 @@
     height: 100%;
 }
 
-/* Reading Mode (Truyện) */
+/* ============================
+   READER PAGE - Fullscreen overlay (tách biệt detail)
+   ============================ */
+
+.reader-page {
+    position: fixed;
+    inset: 0;
+    z-index: 2100;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.3s ease, visibility 0.3s;
+}
+
+.reader-page.hidden {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Nút quay lại */
+.reader-back-btn {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(10, 10, 10, 0.9);
+    backdrop-filter: blur(8px);
+    color: var(--text-secondary);
+    border: none;
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: color 0.2s, background 0.2s;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.reader-back-btn:hover {
+    color: var(--accent);
+    background: rgba(20, 20, 30, 0.95);
+}
+
+/* Container reader full height */
+.reader-full-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* ============================
+   READING MODE (Truyện) - Premium
+   ============================ */
+
+/* Container chính - ảnh truyện */
 .reading-container {
     width: 100%;
     max-width: 800px;
     margin: 0 auto;
-    background: #000;
+    background: #0a0a0a;
+    position: relative;
 }
 
+/* Thanh cuộn cho vùng đọc truyện (trên reader-full-container) */
+.reader-full-container::-webkit-scrollbar {
+    width: 10px;
+}
+
+.reader-full-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.reader-full-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--accent), var(--accent-secondary));
+    border-radius: 5px;
+    border: 2px solid #000;
+}
+
+.reader-full-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--accent-hover), var(--accent-secondary));
+}
+
+/* Firefox scrollbar */
+.reader-full-container {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) rgba(255, 255, 255, 0.04);
+}
+
+/* Thanh điều hướng chương - Sticky */
+.reader-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 12px;
+    background: rgba(20, 20, 30, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.reader-nav .nav-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.reader-nav .nav-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+.reader-nav .nav-btn:disabled {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.3);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Wrapper cho indicator + dropdown */
+.chapter-indicator-wrap {
+    position: relative;
+}
+
+.reader-nav .chapter-indicator {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-sm);
+    color: var(--accent-secondary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    text-align: center;
+    min-width: 80px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reader-nav .chapter-indicator:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+/* Dropdown danh sách chương */
+.chapter-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 180px;
+    max-height: 300px;
+    overflow-y: auto;
+    background: rgba(15, 15, 25, 0.97);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    z-index: 100;
+    padding: 6px;
+}
+
+.chapter-dropdown.open {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    animation: dropdownIn 0.2s ease;
+}
+
+@keyframes dropdownIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Mỗi item trong dropdown */
+.chapter-dropdown-item {
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+
+.chapter-dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.chapter-dropdown-item.active {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+}
+
+/* Scrollbar dropdown */
+.chapter-dropdown::-webkit-scrollbar {
+    width: 4px;
+}
+
+.chapter-dropdown::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
+
+/* Ảnh chương truyện */
 .chapter-image {
     width: 100%;
     display: block;
     margin: 0;
     padding: 0;
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+}
+
+.chapter-image.loaded {
+    opacity: 1;
+}
+
+/* Skeleton loading cho ảnh */
+.img-skeleton {
+    width: 100%;
+    min-height: 400px;
+    background: linear-gradient(90deg, #1a1a28 25%, #22223a 50%, #1a1a28 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.img-skeleton::after {
+    content: '';
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Nút cuộn lên đầu - bên trái (tránh chồng ruler bên phải) */
+.reader-scroll-top {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    width: 48px;
+    height: 48px;
+    background: var(--accent);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 2050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px var(--accent-glow);
+    transition: all 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+}
+
+.reader-scroll-top.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.reader-scroll-top:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px var(--accent-glow);
+}
+
+/* Thanh tiến trình đọc */
+.reader-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+    z-index: 2060;
+    transition: width 0.15s ease-out;
+    border-radius: 0 2px 2px 0;
+}
+
+/* Nút chế độ tải ảnh */
+.reader-load-mode {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    padding: 10px 16px;
+    background: rgba(15, 15, 25, 0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 2200;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.reader-load-mode:hover {
+    background: rgba(25, 25, 40, 0.95);
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Custom scrollbar cho trang đọc truyện */
+.detail-page::-webkit-scrollbar {
+    width: 8px;
+}
+
+.detail-page::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.detail-page::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--accent), var(--accent-secondary));
+    border-radius: 4px;
+}
+
+.detail-page::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--accent-hover), var(--accent-secondary));
 }
 
 /* Danh sách chương (Truyện) */
@@ -296,12 +662,52 @@
     cursor: pointer;
     font-size: 0.9rem;
     color: var(--text-secondary);
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
 
 .chapter-item:hover {
     background: var(--accent);
     color: #fff;
+    transform: translateY(-1px);
+}
+
+/* Server list container cải thiện */
+.server-list-container {
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    border: 1px solid var(--border);
+}
+
+.server-list-container h3 {
+    margin-bottom: 12px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Loading spinner cải thiện */
+.loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    gap: 10px;
+}
+
+.loading-spinner::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
 }
 
 /* Responsive */
