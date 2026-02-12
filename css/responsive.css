@@ -5,6 +5,10 @@
 
 /* === Tablet (≤ 1024px) === */
 @media (max-width: 1024px) {
+    .header-left {
+        gap: 20px;
+    }
+
     .hero-title {
         font-size: 2.4rem;
     }
@@ -28,81 +32,114 @@
 /* === Mobile lớn (≤ 768px) === */
 @media (max-width: 768px) {
     :root {
-        --header-height: 64px;
+        --header-height: 60px;
     }
 
-    /* Menu chuyển thành dropdown */
-    .nav {
+    /* Header Mobile Optimization */
+    .header-inner {
+        padding: 0 12px;
+    }
+
+    .header-left {
+        gap: 10px;
+    }
+
+    .logo-text {
         display: none;
-        position: absolute;
-        top: var(--header-height);
-        left: 0;
-        right: 0;
-        background: var(--bg-header);
-        backdrop-filter: blur(20px);
-        flex-direction: column;
-        padding: 16px;
-        border-bottom: 1px solid var(--border);
-        box-shadow: var(--shadow-md);
+        /* Ẩn tên logo, chỉ hiện icon */
     }
 
-    .nav.active {
-        display: flex;
+    .mode-tab {
+        padding: 4px 8px;
+        font-size: 0.8rem;
     }
 
-    /* Hiện nút hamburger */
-    .mobile-menu-btn {
-        display: flex;
+    .mode-tab span {
+        display: none;
+        /* Ẩn icon, chỉ hiện text ngắn gọn */
     }
+
+    /* Search Box nhỏ gọn */
+    .search-input {
+        width: 120px;
+        font-size: 0.85rem;
+    }
+
+    .search-box {
+        padding-left: 10px;
+    }
+
+    /* Menu chuyển thành dropdown (nếu cần) - Hiện tại đã code trong JS */
+    /* Tuy nhiên trong components.js, nav có class 'mobile-hidden' */
+    /* CSS cần xử lý hiển thị */
+
+    .nav.mobile-hidden {
+        display: none;
+        /* Ẩn nav desktop */
+    }
+
+    /* ... logic mobile nav riêng đã có trong header.css hoặc components.js */
+
 
     /* Thu nhỏ hero */
     .hero {
-        height: 60vh;
-        min-height: 400px;
+        height: 50vh;
+        min-height: 300px;
     }
 
     .hero-title {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
+        line-height: 1.2;
     }
 
     .hero-content {
-        padding: 0 24px;
+        padding: 0 16px;
         left: 0;
-        bottom: 60px;
-        max-width: 100%;
+        bottom: 40px;
+        width: 100%;
     }
 
     .hero-desc {
         -webkit-line-clamp: 2;
         line-clamp: 2;
         font-size: 0.85rem;
+        margin-bottom: 12px;
+        max-width: 100%;
     }
 
     .hero-actions {
         flex-wrap: wrap;
+        gap: 10px;
     }
 
     .btn-primary,
     .btn-secondary {
-        padding: 12px 24px;
-        font-size: 0.9rem;
+        padding: 8px 16px;
+        font-size: 0.85rem;
     }
 
-    /* Ẩn mũi tên trên mobile */
+    /* Ẩn mũi tên slide */
     .hero-arrow {
         display: none;
     }
 
     .movie-card {
-        flex: 0 0 150px;
+        flex: 0 0 140px;
     }
 
     .section-title {
         font-size: 1.1rem;
     }
 
-    .search-box.active .search-input {
-        width: 200px;
+    .section-header {
+        margin-bottom: 12px;
+    }
+
+    /* Grid layout adjustments */
+    .movie-grid,
+    .genre-grid-page {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 12px;
     }
 
     .footer-links {
@@ -112,20 +149,60 @@
 
 /* === Mobile nhỏ (≤ 480px) === */
 @media (max-width: 480px) {
+
+    /* Chuyển sang hiện icon, ẩn chữ cho gọn */
+    .mode-tab {
+        padding: 6px;
+    }
+
+    .mode-tab span {
+        display: inline-block;
+        /* Hiện lại icon */
+        font-size: 1.2rem;
+    }
+
+    /* Ẩn text của mode tab (label) */
+    .mode-tab {
+        font-size: 0;
+        /* Cách hack để ẩn text direct child node nhưng giữ icon trong span */
+    }
+
+    /* Hoặc dùng cách an toàn hơn nếu cấu trúc HTML cho phép */
+    /* HTML: <button> <span>icon</span> text </button> */
+    /* font-size: 0 sẽ ẩn text node, nhưng cần reset font-size cho span */
+
+    .mode-switcher {
+        display: flex;
+        /* Đảm bảo hiện */
+        gap: 4px;
+    }
+
+    .search-input {
+        width: 100px;
+        /* Thu nhỏ search thêm tí nữa */
+    }
+
     .movie-card {
-        flex: 0 0 130px;
+        flex: 0 0 120px;
+    }
+
+    .movie-grid,
+    .genre-grid-page {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 10px;
     }
 
     .hero-title {
-        font-size: 1.5rem;
+        font-size: 1.2rem;
     }
 
     .footer-links {
         grid-template-columns: 1fr;
     }
 
-    /* Ẩn "Xem tất cả" trên màn nhỏ */
+    /* Ẩn "Xem tất cả" */
     .see-all {
+        font-size: 0.8rem;
         display: none;
     }
 }
