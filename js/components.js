@@ -36,6 +36,16 @@ function renderHeader() {
                     <nav class="nav mobile-hidden">${navHTML}</nav>
                 </div>
                 <div class="header-right">
+                    <!-- Mobile Shortcuts: Chỉ hiện trên mobile -->
+                    <div class="mobile-shortcuts">
+                        <button class="header-icon-btn" onclick="handleNav('genres')" aria-label="Thể loại">
+                            ${ICONS.category}
+                        </button>
+                        <button class="header-icon-btn" onclick="handleNav('history')" aria-label="Lịch sử">
+                            ${ICONS.history}
+                        </button>
+                    </div>
+                    
                     <div class="search-box">
                         <input type="text" class="search-input" placeholder="Tìm kiếm phim, truyện...">
                         <button class="search-toggle">${ICONS.search}</button>

@@ -44,6 +44,11 @@
         gap: 10px;
     }
 
+    /* Hiển thị shortcuts trên mobile */
+    .mobile-shortcuts {
+        display: flex;
+    }
+
     .logo-text {
         display: none;
         /* Ẩn tên logo, chỉ hiện icon */

@@ -44,7 +44,8 @@
 .header-right {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+    /* Giảm gap để chứa shortcuts */
 }
 
 /* === Logo === */
@@ -188,6 +189,34 @@
     font-size: 0.9rem;
     outline: none;
 }
+
+/* === Mobile Shortcuts (Icons for History/Category) === */
+.mobile-shortcuts {
+    display: none;
+    /* Ẩn trên desktop */
+    align-items: center;
+    gap: 2px;
+}
+
+.header-icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.header-icon-btn:hover {
+    color: var(--accent);
+    background: rgba(255, 255, 255, 0.05);
+}
+
 
 /* Responsive: Thu nhỏ input trên mobile */
 @media (max-width: 768px) {
