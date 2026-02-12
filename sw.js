@@ -66,3 +66,49 @@ self.addEventListener('fetch', (event) => {
             })
     );
 });
+
+// 1. Background Sync: Xử lý các tác vụ khi có mạng trở lại
+self.addEventListener('sync', (event) => {
+    if (event.tag === 'sync-history') {
+        // Code để đồng bộ lịch sử xem phim (placeholder)
+        // event.waitUntil(syncHistory()); 
+        console.log('Background Sync: Syncing history...');
+    }
+});
+
+// 2. Periodic Sync: Cập nhật dữ liệu nền định kỳ (ví dụ: mỗi 24h)
+self.addEventListener('periodicsync', (event) => {
+    if (event.tag === 'update-content') {
+        event.waitUntil(
+            // Tự động fetch trang chủ để cache mới nhất
+            fetch('/')
+                .then(res => caches.open(CACHE_NAME).then(cache => cache.put('/', res)))
+                .catch(console.error)
+        );
+        console.log('Periodic Sync: Content updated');
+    }
+});
+
+// 3. Push Notifications: Nhận thông báo từ server
+self.addEventListener('push', (event) => {
+    const data = event.data ? event.data.json() : {};
+    const title = data.title || 'QPhim & QTruyện';
+    const options = {
+        body: data.body || 'Có nội dung mới cập nhật!',
+        icon: '/img/icon-192.png',
+        badge: '/img/icon-192.png',
+        data: { url: data.url || '/' }
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
+});
+
+// Xử lý khi user click vào thông báo
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    event.waitUntil(
+        clients.openWindow(event.notification.data.url)
+    );
+});
