@@ -1,6 +1,12 @@
 node_modules/
 .git/
+.agent/
+.vscode/
 *.md
+*.png
+*.log
 .gitignore
 .dockerignore
 docker-compose.yml
+render.yaml
+test_browser.js
