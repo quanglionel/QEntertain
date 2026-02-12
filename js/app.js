@@ -31,4 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // startAutoSlide();
 
     console.log(`🎬📚 QPhim & QTruyện đã khởi tạo! Mode: ${currentMode}`);
+
+    // 4. Đăng ký Service Worker (PWA)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(() => { });
+    }
 });

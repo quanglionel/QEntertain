@@ -1,0 +1,24 @@
+{
+    "name": "QPhim & QTruyện",
+    "short_name": "QPhim",
+    "description": "Xem phim Anime & đọc truyện tranh miễn phí",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#0a0a0a",
+    "theme_color": "#7b61ff",
+    "icons": [
+        {
+            "src": "/img/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "entertainment",
+        "video"
+    ],
+    "lang": "vi",
+    "dir": "ltr"
+}
