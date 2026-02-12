@@ -35,30 +35,43 @@ const API = {
     //  OPHIM - PHIM
     // ==========================================
 
-    /** Lấy danh sách phim trang chủ */
+    /** Lấy danh sách phim trang chủ (Gộp nhiều nguồn) */
     async getPhimHome() {
-        return this.fetch(`${this.phim}/danh-sach/phim-moi-cap-nhat`);
+        try {
+            // Lấy từ 3 nguồn khác nhau để đảm bảo nội dung đa dạng và đủ số lượng
+            const [r1, r2, r3] = await Promise.all([
+                this.getPhimList('phim-moi-cap-nhat', 1),
+                this.getPhimList('phim-le', 1),
+                this.getPhimList('phim-bo', 1)
+            ]);
+
+            const items = [
+                ...(r1?.items || r1?.data?.items || []),
+                ...(r2?.items || r2?.data?.items || []),
+                ...(r3?.items || r3?.data?.items || [])
+            ];
+
+            // Lọc trùng
+            const uniqueItems = Array.from(new Map(items.map(item => [item._id || item.slug, item])).values());
+
+            return { status: true, data: { items: uniqueItems } };
+        } catch (e) {
+            console.error('Error fetching Home Pages', e);
+            return this.getPhimList('phim-moi-cap-nhat', 1);
+        }
     },
 
-    /** Lấy danh sách phim có bộ lọc
-     * @param {string} type - loại: 'phim-le', 'phim-bo', 'hoat-hinh', 'tv-shows'
-     * @param {number} page - trang
-     */
+    /** Lấy danh sách phim có bộ lọc */
     async getPhimList(type = 'phim-moi', page = 1) {
         return this.fetch(`${this.phim}/danh-sach/${type}?page=${page}`);
     },
 
-    /** Tìm kiếm phim
-     * @param {string} keyword - từ khoá
-     * @param {number} page - trang
-     */
+    /** Tìm kiếm phim */
     async searchPhim(keyword, page = 1) {
         return this.fetch(`${this.phim}/tim-kiem?keyword=${encodeURIComponent(keyword)}&page=${page}`);
     },
 
-    /** Lấy chi tiết phim
-     * @param {string} slug - slug phim
-     */
+    /** Lấy chi tiết phim */
     async getPhimDetail(slug) {
         return this.fetch(`${this.phim}/phim/${slug}`);
     },
@@ -68,10 +81,7 @@ const API = {
         return this.fetch(`${this.phim}/the-loai`);
     },
 
-    /** Lấy phim theo thể loại
-     * @param {string} slug - slug thể loại
-     * @param {number} page - trang
-     */
+    /** Lấy phim theo thể loại */
     async getPhimByCategory(slug, page = 1) {
         return this.fetch(`${this.phim}/the-loai/${slug}?page=${page}`);
     },
@@ -88,8 +98,6 @@ const API = {
 
     /**
      * Tạo URL ảnh phim
-     * @param {string} thumbUrl - tên file ảnh từ API (vd: "ten-phim-thumb.jpg")
-     * @returns {string} - URL đầy đủ
      */
     getPhimImageUrl(thumbUrl) {
         if (!thumbUrl) return '';
@@ -101,9 +109,27 @@ const API = {
     //  OTRUYEN - TRUYỆN
     // ==========================================
 
-    /** Lấy danh sách truyện trang chủ */
+    /** Lấy danh sách truyện trang chủ (Gộp Truyện Mới, Đang phát hành, Hoàn thành) */
     async getTruyenHome() {
-        return this.fetch(`${this.truyen}/home`);
+        try {
+            const [r1, r2, r3] = await Promise.all([
+                this.getTruyenList('truyen-moi', 1),
+                this.getTruyenList('dang-phat-hanh', 1),
+                this.getTruyenList('hoan-thanh', 1)
+            ]);
+
+            const items = [
+                ...(r1?.data?.items || []),
+                ...(r2?.data?.items || []),
+                ...(r3?.data?.items || [])
+            ];
+            // Lọc trùng
+            const uniqueItems = Array.from(new Map(items.map(item => [item._id || item.slug, item])).values());
+
+            return { status: true, data: { items: uniqueItems } };
+        } catch (e) {
+            return this.getTruyenList('truyen-moi', 1);
+        }
     },
 
     /** Lấy danh sách truyện mới
