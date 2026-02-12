@@ -16,27 +16,7 @@ function initHeaderScroll() {
     });
 }
 
-/**
- * Nút cuộn trái/phải cho danh sách phim
- * Cuộn mượt 600px mỗi lần nhấn
- */
-function initScrollButtons() {
-    const SCROLL_AMOUNT = 600;
 
-    document.querySelectorAll('.scroll-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const list = document.getElementById(btn.dataset.target);
-            if (!list) return;
-
-            // Xác định hướng cuộn
-            const direction = btn.classList.contains('scroll-left') ? -1 : 1;
-            list.scrollBy({
-                left: direction * SCROLL_AMOUNT,
-                behavior: 'smooth'
-            });
-        });
-    });
-}
 
 /**
  * Menu hamburger trên mobile

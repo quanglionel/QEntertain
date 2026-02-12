@@ -12,7 +12,7 @@ function initAllEvents() {
     initThemeToggle();
     initSearchBox();
     initHeaderScroll();
-    initScrollButtons();
+
     initMobileMenu();
     initNavLinks();
 }
