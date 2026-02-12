@@ -593,7 +593,10 @@ function renderHistoryPage() {
     if (history.length === 0) {
         main.innerHTML = `
             <section class="movie-section">
-                <div class="section-header"><h2 class="section-title">🕒 Lịch sử đọc truyện</h2></div>
+                <div class="section-header">
+                    <h2 class="section-title">🕒 Lịch sử đọc truyện</h2>
+                    <button class="see-all" onclick="handleNav('home')">← Trang chủ</button>
+                </div>
                 <div style="text-align:center;padding:60px 20px;color:var(--text-muted);background:rgba(255,255,255,0.02);border-radius:12px;">
                     <div style="font-size:3rem;margin-bottom:10px;">📭</div>
                     <p>Bạn chưa đọc truyện nào.</p>
