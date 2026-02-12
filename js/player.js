@@ -79,9 +79,16 @@ const Player = {
                     }
                 });
 
-                // ③ Khi manifest parsed → log qualities
+                // ③ Khi manifest parsed → tạo quality selector
                 this.hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-                    console.log('📋 Qualities:', this.hls.levels.map(l => l.height));
+                    const levels = this.hls.levels;
+                    const qualities = levels.map(l => l.height);
+                    console.log('📋 Qualities:', qualities);
+
+                    // Tạo quality selector nếu có nhiều hơn 1 quality
+                    if (qualities.length > 0) {
+                        this._createQualitySelector(videoWrapper, qualities);
+                    }
                 });
 
                 // ④ Load source + attach media SAU KHI Plyr đã wrap xong
@@ -434,6 +441,62 @@ const Player = {
         clear('mediaContainer');
         clear('watchPlayerContainer');
         clear('readerContainer');
+    },
+
+    /**
+     * Tạo quality selector overlay cho video player
+     */
+    _createQualitySelector(container, qualities) {
+        // Xóa selector cũ nếu có
+        const old = container.querySelector('.quality-selector');
+        if (old) old.remove();
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'quality-selector';
+        wrapper.innerHTML = `
+            <button class="quality-btn" title="Chất lượng">
+                <span>⚙</span>
+                <span class="quality-label">Auto</span>
+            </button>
+            <div class="quality-menu hidden">
+                <div class="quality-option active" data-level="-1">Auto</div>
+                ${qualities.map((q, i) => `
+                    <div class="quality-option" data-level="${i}">${q}p</div>
+                `).join('')}
+            </div>
+        `;
+
+        // Toggle menu
+        const btn = wrapper.querySelector('.quality-btn');
+        const menu = wrapper.querySelector('.quality-menu');
+        const label = wrapper.querySelector('.quality-label');
+
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('hidden');
+        });
+
+        // Chọn quality
+        menu.addEventListener('click', (e) => {
+            const opt = e.target.closest('.quality-option');
+            if (!opt) return;
+
+            const level = parseInt(opt.dataset.level);
+            if (this.hls) {
+                this.hls.currentLevel = level;
+            }
+
+            // Update UI
+            menu.querySelectorAll('.quality-option').forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+            label.textContent = level === -1 ? 'Auto' : opt.textContent;
+            menu.classList.add('hidden');
+        });
+
+        // Đóng menu khi click bên ngoài
+        document.addEventListener('click', () => menu.classList.add('hidden'));
+
+        container.appendChild(wrapper);
     }
 };
 
