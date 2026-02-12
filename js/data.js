@@ -38,6 +38,7 @@ const APP_MODES = {
             { label: "Manhwa", section: "manhwa", active: false },
             { label: "Manhua", section: "manhua", active: false },
             { label: "Thể loại", section: "genres", active: false },
+            { label: "Lịch sử", section: "history", active: false },
         ],
     }
 };

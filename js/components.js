@@ -111,6 +111,12 @@ window.handleNav = async (section, label) => {
             return;
         }
 
+        // 4. Xử lý Lịch sử
+        if (section === 'history') {
+            renderHistoryPage();
+            return;
+        }
+
         // 4. Xử lý Danh mục (Manga, Manhwa...)
         let items = [];
         // Gọi API tương ứng
@@ -377,29 +383,76 @@ function renderDetailContent(item, isPhim) {
 function renderListButtons(item, isPhim) {
     const list = document.getElementById('serverList');
     if (!list) return;
+    list.innerHTML = ''; // Clear old content
 
     if (isPhim) {
+        list.className = 'server-list episode-list'; // Grid layout for movies
         item.episodes.forEach(server => {
+            if (item.episodes.length > 1) {
+                const title = document.createElement('h4');
+                title.className = 'server-title';
+                title.textContent = server.server_name;
+                list.appendChild(title);
+            }
+            const grid = document.createElement('div');
+            grid.className = 'episode-grid';
+
             server.server_data.forEach(ep => {
                 const btn = document.createElement('button');
                 btn.className = 'server-btn';
                 btn.innerText = ep.name;
                 btn.onclick = () => playEp(ep.link_m3u8 || ep.link_embed);
-                list.appendChild(btn);
+                grid.appendChild(btn);
             });
+            list.appendChild(grid);
         });
     } else {
+        list.className = 'chapter-list-vertical'; // Vertical list for manga
+
+        // Flatten chapters if multiple servers (rare for OTruyen but handle it)
         item.chapters.forEach(server => {
-            server.server_data.forEach(chap => {
-                const btn = document.createElement('button');
-                btn.className = 'server-btn';
-                btn.innerText = chap.chapter_name;
-                btn.dataset.apiUrl = chap.chapter_api_data; // Dùng cho highlight
-                btn.onclick = () => readChap(chap.chapter_api_data);
-                list.appendChild(btn);
+            // Hiển thị từ mới nhất -> cũ nhất
+            const chapters = [...server.server_data].reverse();
+
+            chapters.forEach(chap => {
+                const row = document.createElement('div');
+                row.className = 'chapter-item';
+                row.onclick = () => readChap(chap.chapter_api_data);
+
+                // Chỉ lấy thời gian từ chính chapter (nếu có)
+                const timeStr = chap.updated_at || chap.created_at;
+                const timeDisplay = timeStr ? formatRelativeTime(timeStr) : '';
+
+                row.innerHTML = `
+                    <div class="chapter-info">
+                        <span class="chapter-name">Chương ${chap.chapter_name}</span>
+                        ${chap.chapter_title ? `<span class="chapter-sub">${chap.chapter_title}</span>` : ''}
+                    </div>
+                    ${timeDisplay ? `
+                    <div class="chapter-meta">
+                        <span class="chapter-time">${timeDisplay}</span>
+                    </div>` : ''}
+                `;
+                list.appendChild(row);
             });
         });
     }
+}
+
+function formatRelativeTime(dateStr) {
+    if (!dateStr) return '';
+    try {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diff = (now - date) / 1000;
+
+        if (diff < 60) return 'Vừa xong';
+        if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
+        if (diff < 2592000) return `${Math.floor(diff / 86400)} ngày trước`;
+        if (diff < 31536000) return `${Math.floor(diff / 2592000)} tháng trước`;
+        return date.toLocaleDateString('vi-VN');
+    } catch (e) { return ''; }
 }
 
 // Global functions for onclick HTML
@@ -456,6 +509,21 @@ window.readChap = async (apiUrl, scrollToTop = false) => {
                     if (idx > 0) nav.prev = all[idx - 1].chapter_api_data;
                     if (idx < all.length - 1) nav.next = all[idx + 1].chapter_api_data;
                     currentChapterName = `Ch. ${all[idx].chapter_name}`;
+
+                    // === LƯU LỊCH SỬ ===
+                    if (window.currentDetailData) {
+                        saveHistory({
+                            id: window.currentDetailData._id,
+                            slug: window.currentDetailData.slug,
+                            name: window.currentDetailData.name,
+                            thumb_url: window.currentDetailData.thumb_url,
+                            chapter_name: all[idx].chapter_name,
+                            chapter_api_data: apiUrl,
+                            time: Date.now()
+                        });
+                    }
+
+
                 }
             }
 
@@ -484,84 +552,86 @@ function switchMode(mode) {
 }
 
 /* === GENRES SECTION === */
-async function renderGenresSection() {
-    const container = document.getElementById('movieSections');
-    if (!container) return;
+// (Removed renderGenresSection and loadGenre)
 
-    const isPhim = currentMode === 'phim';
+// window.loadGenre = loadGenre; // Removed
 
-    // Fetch danh sách thể loại
-    const res = isPhim ? await API.getPhimCategories() : await API.getTruyenCategories();
-    if (!res || !res.data?.items) return;
-
-    const genres = res.data.items;
-    if (genres.length === 0) return;
-
-    // Tạo section thể loại
-    const section = document.createElement('section');
-    section.className = 'movie-section';
-    section.id = 'genresSection';
-    section.innerHTML = `
-        <div class="section-header">
-            <h2 class="section-title">📂 Thể loại</h2>
-        </div>
-        <div class="genres-grid" id="genresTags"></div>
-        <div id="genreResults"></div>
-    `;
-    container.appendChild(section);
-
-    // Render genre tags
-    const tagsContainer = section.querySelector('#genresTags');
-    genres.forEach(g => {
-        const tag = document.createElement('span');
-        tag.className = 'genre-tag';
-        tag.textContent = g.name;
-        tag.dataset.slug = g.slug;
-        tag.onclick = () => loadGenre(g.slug, g.name, tag);
-        tagsContainer.appendChild(tag);
-    });
-}
-
-async function loadGenre(slug, name, tagEl) {
-    // Highlight tag đang chọn
-    document.querySelectorAll('.genre-tag').forEach(t => t.classList.remove('active'));
-    if (tagEl) tagEl.classList.add('active');
-
-    const resultsDiv = document.getElementById('genreResults');
-    if (!resultsDiv) return;
-
-    resultsDiv.innerHTML = '<div class="loading-spinner">Đang tải...</div>';
-
-    const isPhim = currentMode === 'phim';
-    const res = isPhim
-        ? await API.getPhimByCategory(slug)
-        : await API.getTruyenByCategory(slug);
-
-    if (!res || !res.data?.items || res.data.items.length === 0) {
-        resultsDiv.innerHTML = '<div style="padding:20px;color:#888;text-align:center;">Không có kết quả</div>';
-        return;
-    }
-
-    // Render grid kết quả
-    resultsDiv.innerHTML = '';
-    const grid = document.createElement('div');
-    grid.className = 'genre-results';
-
-    res.data.items.forEach(item => {
-        grid.appendChild(createCard(item));
-    });
-
-    resultsDiv.appendChild(grid);
-
-    // Cuộn xuống kết quả
-    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// Expose cho global
-window.loadGenre = loadGenre;
 
 window.showDetail = showDetail;
 window.switchMode = switchMode;
+window.clearHistory = clearHistory;
+
+/* === HISTORY STORAGE & RENDER === */
+function saveHistory(data) {
+    if (!data.slug) return;
+    try {
+        let history = JSON.parse(localStorage.getItem('qhub-history') || '[]');
+        history = history.filter(h => h.slug !== data.slug);
+        history.unshift(data);
+        if (history.length > 50) history.pop();
+        localStorage.setItem('qhub-history', JSON.stringify(history));
+    } catch (e) { console.error('History Save Error', e); }
+}
+
+function renderHistoryPage() {
+    const main = document.getElementById('movieSections');
+    const history = JSON.parse(localStorage.getItem('qhub-history') || '[]');
+
+    if (history.length === 0) {
+        main.innerHTML = `
+            <section class="movie-section">
+                <div class="section-header"><h2 class="section-title">🕒 Lịch sử đọc truyện</h2></div>
+                <div style="text-align:center;padding:60px 20px;color:var(--text-muted);background:rgba(255,255,255,0.02);border-radius:12px;">
+                    <div style="font-size:3rem;margin-bottom:10px;">📭</div>
+                    <p>Bạn chưa đọc truyện nào.</p>
+                </div>
+            </section>
+        `;
+        return;
+    }
+
+    main.innerHTML = `
+        <section class="movie-section">
+            <div class="section-header">
+                <h2 class="section-title">🕒 Lịch sử đọc truyện</h2>
+                <button class="see-all" onclick="clearHistory()" style="background:rgba(255,50,50,0.1);color:#ff5555;border:1px solid rgba(255,50,50,0.2);cursor:pointer;">Xóa tất cả</button>
+            </div>
+            <div class="movie-grid" id="historyGrid"></div>
+        </section>
+    `;
+
+    const grid = document.getElementById('historyGrid');
+    history.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'movie-card';
+        card.onclick = () => readChap(item.chapter_api_data);
+
+        const imgUrl = API.getTruyenImageUrl(item.thumb_url);
+
+        card.innerHTML = `
+            <div class="movie-poster">
+                <img src="${imgUrl}" class="movie-poster-img" loading="lazy" onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
+                <div class="movie-episode" style="background:var(--accent);bottom:0;left:0;right:0;text-align:center;border-radius:0;">
+                    Đọc tiếp Ch.${item.chapter_name}
+                </div>
+            </div>
+            <div class="movie-info">
+                <div class="movie-title">${item.name}</div>
+                <div class="movie-meta">
+                    <span class="movie-year" style="font-size:0.75rem;color:var(--text-muted);">${formatRelativeTime(item.time)}</span>
+                </div>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+function clearHistory() {
+    if (confirm('Xóa toàn bộ lịch sử đọc truyện?')) {
+        localStorage.removeItem('qhub-history');
+        renderHistoryPage();
+    }
+}
 
 /* === INIT === */
 async function renderAll() {
@@ -602,8 +672,8 @@ async function renderAll() {
                 renderList(sec.listId, secItems);
             });
 
-            // Render thể loại section
-            renderGenresSection();
+            // Render thể loại section (Removed)
+            // renderGenresSection();
         } else {
             console.log('No API Data');
         }

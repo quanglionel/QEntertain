@@ -62,6 +62,7 @@ const Player = {
      */
     initReader(container, images, nav = {}, chapterName = '') {
         this.destroy(); // Clear old content
+        this._autoNextTriggered = false; // Reset auto-next state
         container.innerHTML = ''; // Xóa loading spinner
 
         // ===== Thanh tiến trình đọc =====
@@ -98,6 +99,44 @@ const Player = {
             const percent = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
             progressBar.style.width = percent + '%';
             scrollTopBtn.classList.toggle('visible', scrollTop > 500);
+
+            // === AUTO NEXT CHAPTER ===
+            if (nav.next && !this._autoNextTriggered) {
+                // Khi cuộn xuống gần đáy (còn 50px)
+                if (scrollTop + container.clientHeight >= container.scrollHeight - 50) {
+                    this._autoNextTriggered = true;
+
+                    // Hiển thị thông báo
+                    let toast = document.getElementById('auto-next-toast');
+                    if (!toast) {
+                        toast = document.createElement('div');
+                        toast.id = 'auto-next-toast';
+                        toast.innerText = 'Đang chuyển chương tiếp theo... ⏳';
+                        toast.style.cssText = `
+                            position: fixed;
+                            bottom: 100px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            background: rgba(20, 20, 30, 0.95);
+                            color: #fff;
+                            padding: 12px 24px;
+                            border-radius: 50px;
+                            z-index: 10000;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+                            border: 1px solid var(--accent);
+                            font-weight: 600;
+                            animation: fadeInUp 0.3s ease;
+                        `;
+                        document.body.appendChild(toast);
+                    }
+
+                    // Chuyển chương sau 1s (để người dùng kịp nhận ra)
+                    setTimeout(() => {
+                        if (toast) toast.remove();
+                        window.readChap(nav.next, true);
+                    }, 500);
+                }
+            }
         };
 
         // Gắn scroll listener trực tiếp (container đã tồn tại trong DOM)
