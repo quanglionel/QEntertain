@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: qphim
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars: []
+    plan: free
