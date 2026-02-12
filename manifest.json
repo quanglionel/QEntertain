@@ -94,6 +94,22 @@
         "window-controls-overlay",
         "standalone"
     ],
+    "share_target": {
+        "action": "/",
+        "method": "GET",
+        "enctype": "application/x-www-form-urlencoded",
+        "params": {
+            "title": "t",
+            "text": "text",
+            "url": "url"
+        }
+    },
+    "protocol_handlers": [
+        {
+            "protocol": "web+qphim",
+            "url": "/?url=%s"
+        }
+    ],
     "scope_extensions": [
         {
             "origin": "*.onrender.com"
