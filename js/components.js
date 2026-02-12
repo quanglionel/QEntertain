@@ -28,7 +28,7 @@ function renderHeader() {
         header.innerHTML = `
             <div class="header-inner">
                 <div class="header-left">
-                    <a href="#" class="logo" onclick="location.reload()">
+                    <a href="#" class="logo" onclick="handleNav('home'); return false;">
                         <span class="logo-icon">▶</span>
                         <span class="logo-text">${config.label}</span>
                     </a>
@@ -180,7 +180,10 @@ function renderGenreList(genres) {
     const main = document.getElementById('movieSections');
     main.innerHTML = `
         <section class="movie-section">
-            <div class="section-header"><h2 class="section-title">Danh sách Thể loại</h2></div>
+            <div class="section-header">
+                <h2 class="section-title">Danh sách Thể loại</h2>
+                <button class="see-all" onclick="handleNav('home')">← Trang chủ</button>
+            </div>
             <div class="genre-grid-page" id="genreGrid"></div>
         </section>
     `;
@@ -604,7 +607,10 @@ function renderHistoryPage() {
         <section class="movie-section">
             <div class="section-header">
                 <h2 class="section-title">🕒 Lịch sử đọc truyện</h2>
-                <button class="see-all" onclick="clearHistory()" style="background:rgba(255,50,50,0.1);color:#ff5555;border:1px solid rgba(255,50,50,0.2);cursor:pointer;">Xóa tất cả</button>
+                <div class="section-controls">
+                    <button class="see-all" onclick="clearHistory()" style="color:#ff5555;margin-right:10px;">Xóa tất cả</button>
+                    <button class="see-all" onclick="handleNav('home')">← Trang chủ</button>
+                </div>
             </div>
             <div class="movie-grid" id="historyGrid"></div>
         </section>
