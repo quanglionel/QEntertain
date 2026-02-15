@@ -184,6 +184,12 @@ function renderHeader() {
                     ${modeSwitchHTML}
                 </div>
             </div>
+
+            <!-- Desktop Nav -->
+            <nav class="desktop-nav desktop-only">
+                ${navHTML}
+            </nav>
+
             <div class="header-right">
                 <div class="search-box">
                     <input type="text" class="search-input" placeholder="Tìm kiếm...">
