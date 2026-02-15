@@ -19,7 +19,7 @@ const Player = {
         console.log('🎬 ArtPlayer init = Backup Link:', url);
         this.destroy(); // Dọn dẹp máy cũ
 
-        if (!container) return;
+        if (!container) return console.error('Player: Container not found');
         container.innerHTML = '';
 
         const videoWrapper = document.createElement('div');
@@ -31,6 +31,7 @@ const Player = {
 
         // UI function to show error
         this.showError = (msg) => {
+            console.error('Player Error:', msg);
             videoWrapper.innerHTML = `
                 <div style="position:absolute;inset:0;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#fff;text-align:center;gap:15px;padding:20px;z-index:100;">
                     <div style="font-size:3rem;">⚠️</div>
@@ -50,13 +51,19 @@ const Player = {
             return this.showError('Link phim bị lỗi hoặc rỗng.');
         }
 
-        // --- XỬ LÝ M3U8 ---
-        if (url.includes('.m3u8')) {
-            console.log('🎥 Mode: ArtPlayer (M3U8)');
-            const saveKey = `qhub-playback-${url}`;
+        // --- KIỂM TRA LOẠI LINK ---
+        const isM3U8 = url.includes('.m3u8') || url.includes('/m3u8');
+
+        if (isM3U8) {
+            console.log('🎥 Mode: ArtPlayer (Native HLS)');
+            const saveKey = `qhub-playback-${url.split('?')[0]}`;
             const savedTime = parseFloat(QStorage.get(saveKey, 0));
 
             try {
+                if (typeof Artplayer === 'undefined') {
+                    throw new Error('ArtPlayer library not loaded. Check your internet connection.');
+                }
+
                 this.art = new Artplayer({
                     container: videoWrapper,
                     url: url,
@@ -109,6 +116,7 @@ const Player = {
 
                                 hls.on(Hls.Events.ERROR, (event, data) => {
                                     if (data.fatal && backupUrl) {
+                                        console.warn('HLS Fatal error, switching to backup...');
                                         this.destroy();
                                         this.initVideo(container, backupUrl, nextEpCallback, poster, null);
                                     }
@@ -129,7 +137,7 @@ const Player = {
                     ],
                 });
 
-                // Events
+                // ArtPlayer Events
                 this.art.on('ready', () => {
                     if (savedTime > 10) {
                         this.art.currentTime = savedTime;
@@ -150,6 +158,7 @@ const Player = {
 
                 this.art.on('video:error', () => {
                     if (backupUrl) {
+                        console.warn('Video playback error, switching to backup...');
                         this.destroy();
                         this.initVideo(container, backupUrl, nextEpCallback, poster, null);
                     }
@@ -157,14 +166,18 @@ const Player = {
 
             } catch (e) {
                 console.error('ArtPlayer Init Error:', e);
-                this.showError('Lỗi khởi tạo trình phát video.');
+                this.showError('Không thể khởi tạo trình phát Video (M3U8).');
             }
 
         } else {
-            // --- XỬ LÝ EMBED / IFRAME ---
+            // --- XỬ LÝ EMBED / IFRAME (MẶC ĐỊNH) ---
             console.log('🔗 Mode: Embed (Iframe)');
             videoWrapper.innerHTML = `
-                <iframe src="${url}" style="width:100%;height:100%;border:none;background:#000;" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+                <iframe src="${url}" 
+                    style="width:100%;height:100%;border:none;background:#000;" 
+                    allowfullscreen 
+                    allow="autoplay; encrypted-media">
+                </iframe>
             `;
 
             const toastId = 'embed-warning-toast';
@@ -178,7 +191,8 @@ const Player = {
             }
         }
 
-        videoWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Đảm bảo container cuộn tới tầm mắt
+        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
 
     /**
@@ -188,7 +202,8 @@ const Player = {
         console.log('📖 Reader init:', chapterName);
         this.destroy();
         this._autoNextTriggered = false;
-        if (container) container.innerHTML = '';
+        if (!container) return;
+        container.innerHTML = '';
 
         let progressBar = document.querySelector('.reader-progress');
         if (!progressBar) {
@@ -337,6 +352,7 @@ const Player = {
     },
 
     destroy() {
+        console.log('🧹 Destroying current Player/Reader instance...');
         if (this.art) {
             this.art.destroy(true);
             this.art = null;
@@ -345,10 +361,13 @@ const Player = {
             this.hls.destroy();
             this.hls = null;
         }
+
+        // Dọn dẹp nội dung các container chính
         ['mediaContainer', 'watchPlayerContainer', 'readerContainer'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.innerHTML = '';
         });
+
         if (this._readerCleanup) {
             this._readerCleanup();
             this._readerCleanup = null;
