@@ -9,12 +9,12 @@
  */
 function initAllEvents() {
     // initHeroSlider(); // Đã chuyển sang components.js
-    initThemeToggle();
-    initSearchBox();
-    initHeaderScroll();
+    if (window.initThemeToggle) initThemeToggle();
+    // initSearchBox(); // Đã gọi trong renderHeader
+    // initHeaderScroll(); // Đã gọi trong renderHeader
 
-    initMobileMenu();
-    initNavLinks();
+    // initMobileMenu(); // Đã bỏ
+    // initNavLinks(); // Đã bỏ
 }
 
 /**
