@@ -161,7 +161,10 @@ function renderHeader() {
                 <h2 style="margin:0;font-size:1.2rem;color:var(--accent);">MENU</h2>
                 <button onclick="toggleSidebar(false)" style="background:none;border:none;color:white;font-size:1.5rem;cursor:pointer;">✕</button>
             </div>
-            <nav class="sidebar-nav">${navHTML}</nav>
+            <nav class="sidebar-nav">
+                ${navHTML}
+                <a href="#" class="nav-link" onclick="openSettings();toggleSidebar(false);return false;">⚙️ Cài đặt</a>
+            </nav>
             ${sidebarModeHTML}
         </div>
     `;
@@ -206,7 +209,8 @@ function renderHeader() {
                     <input type="text" class="search-input" placeholder="Tìm kiếm...">
                     <button class="search-toggle">🔍</button>
                 </div>
-                <div class="mobile-shortcuts">
+                
+                <div class="desktop-only" style="display: flex; gap: 5px;">
                     <button class="header-icon-btn noti-btn" onclick="toggleNotiModal()" aria-label="Thông báo">
                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 .5H8v-5.5c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v5.5z"/></svg>
                         <span class="noti-badge" id="noti-badge">0</span>
@@ -219,6 +223,17 @@ function renderHeader() {
                     </button>
                     <button class="header-icon-btn" onclick="handleNav('bookmarks')" aria-label="Tủ đồ" style="color:var(--text-secondary);">
                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                </div>
+
+                <!-- Mobile Header Icons -->
+                <div class="mobile-only" style="display: flex; gap: 5px;">
+                    <button class="header-icon-btn noti-btn" onclick="toggleNotiModal()" aria-label="Thông báo">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 .5H8v-5.5c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v5.5z"/></svg>
+                        <span class="noti-badge" id="noti-badge-mobile">0</span>
+                    </button>
+                    <button class="header-icon-btn" onclick="openSettings()" aria-label="Cài đặt">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" style="display:none;"/><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.96l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.26-1.13.59-1.62.96l-2.39-.96c-.21-.08-.47-.05-.62.22l-1.92 3.32c-.12.21-.07.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.21.41.29.62.22l2.39-.96c.5.38 1.03.7 1.62.96l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.26 1.13-.59 1.62-.96l2.39.96c.21.08.47.05.62-.22l1.92-3.32c.12-.21.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
                     </button>
                 </div>
             </div>

@@ -65,11 +65,6 @@
         /* Space for bottom nav */
     }
 
-    /* Hide redundant header items on mobile if needed */
-    .header-right .mobile-shortcuts {
-        display: none;
-    }
-
     /* Adjust Header */
     .header-inner {
         padding: 0 15px;

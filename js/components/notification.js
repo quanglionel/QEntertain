@@ -120,16 +120,22 @@ function getUnreadCount() {
 }
 
 function updateBellBadge() {
-    const badge = document.getElementById('noti-badge');
+    const badges = [
+        document.getElementById('noti-badge'),
+        document.getElementById('noti-badge-mobile')
+    ];
     const count = getUnreadCount();
-    if (badge) {
-        if (count > 0) {
-            badge.style.display = 'flex';
-            badge.textContent = count > 9 ? '9+' : count;
-        } else {
-            badge.style.display = 'none';
+
+    badges.forEach(badge => {
+        if (badge) {
+            if (count > 0) {
+                badge.style.display = 'flex';
+                badge.textContent = count > 9 ? '9+' : count;
+            } else {
+                badge.style.display = 'none';
+            }
         }
-    }
+    });
 }
 
 // === 3. CHECK UPDATE LOGIC ===
