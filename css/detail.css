@@ -646,33 +646,6 @@
     border-radius: 0 2px 2px 0;
 }
 
-/* Nút chế độ tải ảnh */
-.reader-load-mode {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    padding: 10px 16px;
-    background: rgba(15, 15, 25, 0.9);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: var(--radius-full);
-    color: var(--text-secondary);
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    z-index: 2200;
-    transition: all 0.25s ease;
-    white-space: nowrap;
-}
-
-.reader-load-mode:hover {
-    background: rgba(25, 25, 40, 0.95);
-    border-color: var(--accent);
-    color: var(--accent);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-}
-
 /* Custom scrollbar cho trang đọc truyện */
 .detail-page::-webkit-scrollbar {
     width: 8px;

@@ -15,8 +15,11 @@ const Player = {
      * @param {string} poster - URL ảnh thumb
      * @param {string} backupUrl - URL dự phòng (nếu có)
      */
-    initVideo(container, url, nextEpCallback, poster, backupUrl = null) {
-        console.log('🎬 ArtPlayer init = Backup Link:', url);
+    initVideo(container, url, nextEpCallback, poster, backupUrl = null, forceEmbed = false) {
+        if (url) url = url.trim();
+        if (backupUrl) backupUrl = backupUrl.trim();
+
+        console.log('🎬 ArtPlayer init = Link:', url);
         this.destroy(); // Dọn dẹp máy cũ
 
         if (!container) return console.error('Player: Container not found');
@@ -36,14 +39,24 @@ const Player = {
                 <div style="position:absolute;inset:0;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#fff;text-align:center;gap:15px;padding:20px;z-index:100;">
                     <div style="font-size:3rem;">⚠️</div>
                     <div style="font-size:1.1rem;color:#f55;max-width:80%;">${msg}</div>
-                    <div style="display:flex;gap:10px;">
+                    <div style="font-size:0.85rem;color:#888;">Lưu ý: Nếu lỗi "CORS" hoặc "Network", hãy thử chuyển sang server Dự phòng hoặc chế độ Embed.</div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
                         <button onclick="location.reload()" style="padding:8px 16px;border-radius:4px;border:none;background:#333;color:white;cursor:pointer;">Tải lại trang</button>
                         ${backupUrl ? `<button id="retryBackup" style="padding:8px 16px;border-radius:4px;border:none;background:var(--accent);color:white;cursor:pointer;">Thử server dự phòng</button>` : ''}
+                        <button id="forceEmbedBtn" style="padding:8px 16px;border-radius:4px;border:none;background:#555;color:white;cursor:pointer;">Dùng chế độ Embed (Iframe)</button>
                     </div>
                 </div>
             `;
             const retryBtn = videoWrapper.querySelector('#retryBackup');
             if (retryBtn) retryBtn.onclick = () => this.initVideo(container, backupUrl, nextEpCallback, poster, null);
+
+            const embedBtn = videoWrapper.querySelector('#forceEmbedBtn');
+            if (embedBtn) embedBtn.onclick = () => {
+                // Nếu link gốc là m3u8 nhưng ko xem đc, ta thử link backup và ép embed, 
+                // hoặc ép embed chính link đó nếu server có hỗ trợ tự detect (hiếm)
+                const targetUrl = backupUrl || url;
+                this.initVideo(container, targetUrl, nextEpCallback, poster, null, true);
+            };
         };
 
         if (!url || url.trim() === '') {
@@ -52,12 +65,13 @@ const Player = {
         }
 
         // --- KIỂM TRA LOẠI LINK ---
-        const isM3U8 = url.includes('.m3u8') || url.includes('/m3u8');
+        const isM3U8 = (url.includes('.m3u8') || url.includes('/m3u8')) && !forceEmbed;
 
         if (isM3U8) {
             console.log('🎥 Mode: ArtPlayer (Native HLS)');
             const saveKey = `qhub-playback-${url.split('?')[0]}`;
             const savedTime = parseFloat(QStorage.get(saveKey, 0));
+
 
             try {
                 if (typeof Artplayer === 'undefined') {
@@ -116,7 +130,7 @@ const Player = {
 
                                 hls.on(Hls.Events.ERROR, (event, data) => {
                                     if (data.fatal && backupUrl) {
-                                        console.warn('HLS Fatal error, switching to backup...');
+                                        console.warn('Switching to backupUrl after HLS fatal...');
                                         this.destroy();
                                         this.initVideo(container, backupUrl, nextEpCallback, poster, null);
                                     }
@@ -157,6 +171,7 @@ const Player = {
                 });
 
                 this.art.on('video:error', () => {
+                    console.error('Video Error Detected');
                     if (backupUrl) {
                         console.warn('Video playback error, switching to backup...');
                         this.destroy();
@@ -225,12 +240,39 @@ const Player = {
         const readingContainer = document.createElement('div');
         readingContainer.className = 'reading-container';
 
+        let lastScrollTop = 0;
+        let isNavVisible = true;
+        let lastTapTime = 0;
+
+        const toggleNav = (force) => {
+            isNavVisible = typeof force === 'boolean' ? force : !isNavVisible;
+            const navs = container.querySelectorAll('.reader-nav');
+            navs.forEach(nav => {
+                nav.classList.toggle('nav-hidden', !isNavVisible);
+            });
+            // Áp dụng cho cả thanh mobile bottom nav bên ngoài nếu có
+            const mobileBottomNav = document.querySelector('.mobile-bottom-nav');
+            if (mobileBottomNav) {
+                mobileBottomNav.classList.toggle('nav-hidden', !isNavVisible);
+            }
+        };
+
         const onScroll = () => {
             const scrollTop = container.scrollTop;
             const scrollHeight = container.scrollHeight - container.clientHeight;
             const percent = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
             progressBar.style.width = percent + '%';
             scrollTopBtn.classList.toggle('visible', scrollTop > 500);
+
+            // Tự động ẩn/hiện theo hướng cuộn
+            if (scrollTop > lastScrollTop && scrollTop > 50 && isNavVisible) {
+                // Cuộn xuống -> Ẩn
+                toggleNav(false);
+            } else if (scrollTop < lastScrollTop && !isNavVisible) {
+                // Cuộn ngược lên -> Hiện
+                toggleNav(true);
+            }
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
 
             if (nav.next && !this._autoNextTriggered) {
                 if (scrollTop + container.clientHeight >= container.scrollHeight - 100) {
@@ -251,6 +293,17 @@ const Player = {
             }
         };
 
+        // Click đúp/Double tap để hiện Nav
+        container.onclick = (e) => {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
+            if (tapLength < 300 && tapLength > 0) {
+                toggleNav();
+                e.preventDefault();
+            }
+            lastTapTime = currentTime;
+        };
+
         container.addEventListener('scroll', onScroll);
 
         this._readerCleanup = () => {
@@ -260,9 +313,26 @@ const Player = {
         };
 
         const currentApiUrl = this._currentApiUrl || '';
-        const createNav = () => {
+        const createNav = (isBottom = false) => {
             const navDiv = document.createElement('div');
             navDiv.className = 'reader-nav';
+
+            // Nút Quay lại (Chỉ hiện ở thanh trên)
+            if (!isBottom) {
+                const backBtn = document.createElement('button');
+                backBtn.className = 'nav-btn back-btn';
+                backBtn.style.background = 'var(--accent)';
+                backBtn.style.color = '#fff';
+                backBtn.innerHTML = '← Quay lại';
+                backBtn.onclick = () => {
+                    const readerPage = document.getElementById('readerPage');
+                    if (readerPage) readerPage.classList.add('hidden');
+                    const detailPage = document.getElementById('detailPage');
+                    if (detailPage) detailPage.classList.remove('hidden');
+                    this.destroy(); // Stop reading
+                };
+                navDiv.appendChild(backBtn);
+            }
 
             const prevBtn = document.createElement('button');
             prevBtn.className = 'nav-btn';
@@ -315,15 +385,19 @@ const Player = {
             nextBtn.disabled = !nav.next;
             if (nav.next) nextBtn.onclick = () => window.readChap(nav.next, true);
 
-            indicatorWrap.appendChild(indicator);
-            indicatorWrap.appendChild(dropdown);
+            if (isBottom) {
+                const flexSpacer = document.createElement('div');
+                flexSpacer.style.flex = '1';
+                navDiv.appendChild(flexSpacer);
+            }
+
             navDiv.appendChild(prevBtn);
             navDiv.appendChild(indicatorWrap);
             navDiv.appendChild(nextBtn);
             return navDiv;
         };
 
-        readingContainer.appendChild(createNav());
+        readingContainer.appendChild(createNav(false));
 
         if (!images || images.length === 0) {
             readingContainer.innerHTML += '<p style="color:#fff;text-align:center;padding:40px;">Không có nội dung chương này.</p>';
@@ -347,7 +421,7 @@ const Player = {
             readingContainer.appendChild(fragment);
         }
 
-        readingContainer.appendChild(createNav());
+        readingContainer.appendChild(createNav(true));
         container.appendChild(readingContainer);
     },
 

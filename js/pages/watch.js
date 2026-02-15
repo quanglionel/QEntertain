@@ -81,8 +81,8 @@ window.playEp = (url, epName, slug, name, thumb, backupUrl = null) => {
                     btn.innerHTML = `<span class="ep-name">Tập ${ep.name}</span>`;
                     btn.dataset.ep = ep.name;
 
-                    const link = ep.link_embed || ep.link_m3u8;
-                    const backupUrl = (ep.link_m3u8 && ep.link_embed && ep.link_m3u8 !== ep.link_embed) ? ep.link_m3u8 : null;
+                    const link = ep.link_m3u8 || ep.link_embed;
+                    const backupUrl = (link === ep.link_m3u8) ? ep.link_embed : null;
 
                     btn.onclick = () => {
                         playEp(link, ep.name, slug, name, thumb, backupUrl);

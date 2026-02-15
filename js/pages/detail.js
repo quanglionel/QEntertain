@@ -87,7 +87,8 @@ function renderDetailContent(item, isPhim) {
         if (targetEp) {
             const link = targetEp.link_m3u8 || targetEp.link_embed;
             if (link) {
-                primaryBtn = `<button class="btn-large btn-play" onclick="playEp('${link}', '${targetEp.name}', '${item.slug}', '${safeName}', '${safeThumb}')">
+                const backup = (link === targetEp.link_m3u8) ? targetEp.link_embed : '';
+                primaryBtn = `<button class="btn-large btn-play" onclick="playEp('${link}', '${targetEp.name}', '${item.slug}', '${safeName}', '${safeThumb}', '${backup}')">
                     ${ICONS.play} ${btnLabel}
                  </button>`;
             }
@@ -145,6 +146,7 @@ function renderDetailContent(item, isPhim) {
                     </button>
                 </div>
 
+
                 <div class="detail-desc">
                     <strong>Nội dung:</strong><br />
                     ${item.content || item.description || 'Đang cập nhật...'}
@@ -192,8 +194,8 @@ function renderListButtons(item, isPhim) {
                     onClick: () => {
                         const safeName = item.name.replace(/'/g, "\\'");
                         const safeThumb = item.thumb_url.replace(/'/g, "\\'");
-                        const epLink = ep.link_embed || ep.link_m3u8;
-                        const epBackup = (ep.link_m3u8 && ep.link_embed && ep.link_m3u8 !== ep.link_embed) ? ep.link_m3u8 : null;
+                        const epLink = ep.link_m3u8 || ep.link_embed;
+                        const epBackup = (epLink === ep.link_m3u8) ? ep.link_embed : null;
                         playEp(epLink, ep.name, item.slug, safeName, safeThumb, epBackup);
                     }
                 })));
@@ -299,6 +301,7 @@ function renderListButtons(item, isPhim) {
         list.appendChild(grid);
     }
 }
+
 
 // Expose Show/Close
 window.showDetail = showDetail;

@@ -122,39 +122,10 @@ function renderSettingsContent() {
         </div>
     `).join('');
 
-    // Append Source Selector
-    html += `
-        <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 10px;">
-            <div style="display:flex; align-items:center; gap: 10px;">
-                <span style="font-size: 1.2rem;">🎬</span>
-                <span>Nguồn phim (Movie Source)</span>
-            </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; width:100%;">
-                ${Object.keys(API.SOURCES).map(key => {
-        const src = API.SOURCES[key];
-        const isActive = currentSource === key;
-        return `
-                        <button class="action-btn source-btn ${isActive ? 'active' : ''}" 
-                                onclick="changeSource('${key}')" 
-                                style="font-size: 0.8rem; padding: 12px 5px; border: 1px solid ${isActive ? 'var(--accent)' : 'rgba(255,255,255,0.1)'}; background: ${isActive ? 'rgba(229, 9, 20, 0.1)' : 'var(--bg-hover)'};">
-                            ${src.name}
-                        </button>
-                    `;
-    }).join('')}
-            </div>
-            <p style="font-size: 0.75rem; color: #888; margin: 0;">* Đổi nguồn nếu server hiện tại bị lỗi hoặc không có phim bạn tìm.</p>
-        </div>
-    `;
 
     container.innerHTML = html;
 }
 
-window.changeSource = (source) => {
-    if (API.setSource(source)) {
-        alert('Đã đổi nguồn sang ' + API.SOURCES[source].name + '! Trang web sẽ tải lại để cập nhật dữ liệu mới.');
-        window.location.reload();
-    }
-};
 
 window.toggleSetting = (key, value) => {
     const s = getSettings();

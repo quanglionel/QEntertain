@@ -1,34 +1,19 @@
 /* ============================================
    QPhim & QTruyện - API Service
-   Kết nối với các nguồn API: OPhim, KKPhim, NguonC, SubNhanh
-   Qua Nginx reverse proxy (tránh CORS)
+   Kết nối với các nguồn API: OPhim (Mặc định)
+   Bỏ các nguồn dự phòng KKPhim, NguonC, SubNhanh theo yêu cầu.
    ============================================ */
 
 const API = {
-    // === Nguồn phim hiện tại (Lấy từ Storage) ===
-    _phimSource: QStorage.get('qphim-source', 'ophim'),
+    // === Nguồn phim hiện tại (Mặc định là OPhim) ===
+    _phimSource: 'ophim',
 
-    // === Cấu hình các nguồn phim ===
+    // === Cấu hình các nguồn phim (Chỉ giữ OPhim) ===
     SOURCES: {
         ophim: {
-            api: '/api/phim',
+            api: '/api/phim', // OPhim qua Proxy Nginx
             img: '/img/phim',
-            name: 'OPhim (Default)'
-        },
-        kkphim: {
-            api: '/api/kkphim',
-            img: '/img/kkphim',
-            name: 'KKPhim (Dự phòng 1)'
-        },
-        nguonc: {
-            api: '/api/nguonc',
-            img: '/img/nguonc',
-            name: 'NguonC (Dự phòng 2)'
-        },
-        subnhanh: {
-            api: '/api/subnhanh',
-            img: '/img/kkphim', // SubNhanh mirrors often use the same CDN
-            name: 'SubNhanh (Dự phòng 3)'
+            name: 'OPhim (Mặc định)'
         }
     },
 
@@ -37,23 +22,18 @@ const API = {
 
     /** Lấy URL API phim hiện tại */
     get phim() {
-        return this.SOURCES[this._phimSource]?.api || this.SOURCES.ophim.api;
+        return this.SOURCES.ophim.api;
     },
 
     /** Lấy URL CDN ảnh hiện tại */
     get imgPhim() {
-        return this.SOURCES[this._phimSource]?.img || this.SOURCES.ophim.img;
+        return this.SOURCES.ophim.img;
     },
 
-    /** Thay đổi nguồn phim */
+    /** Dummy function to maintain compatibility */
     setSource(source) {
-        if (this.SOURCES[source]) {
-            this._phimSource = source;
-            QStorage.save('qphim-source', source);
-            console.log('🔄 Movie Source changed to:', source);
-            return true;
-        }
-        return false;
+        console.log('🔄 Chỉ hỗ trợ nguồn OPhim mặc định.');
+        return true;
     },
 
     /**
@@ -65,6 +45,12 @@ const API = {
         try {
             const res = await fetch(url);
             if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+
+            const contentType = res.headers.get('content-type');
+            if (contentType && contentType.includes('text/html')) {
+                throw new Error('API returned HTML instead of JSON.');
+            }
+
             const data = await res.json();
             return data;
         } catch (err) {
@@ -74,19 +60,12 @@ const API = {
     },
 
     // ==========================================
-    //  MOVIE API (Supports multiple sources)
+    //  MOVIE API
     // ==========================================
 
     /** Lấy danh sách phim trang chủ */
     async getPhimHome() {
         try {
-            // Đối với KKPhim/NguonC/SubNhanh, danh sách phim mới cập nhật thường đủ tốt
-            if (this._phimSource !== 'ophim') {
-                const res = await this.getPhimList('phim-moi-cap-nhat', 1);
-                return res;
-            }
-
-            // OPhim: Gộp để đa dạng
             const [r1, r2, r3] = await Promise.all([
                 this.getPhimList('phim-moi-cap-nhat', 1),
                 this.getPhimList('phim-le', 1),
@@ -109,18 +88,12 @@ const API = {
     /** Lấy danh sách phim có bộ lọc */
     async getPhimList(type = 'phim-moi', page = 1) {
         let url = `${this.phim}/danh-sach/${type}?page=${page}`;
-
-        // Chuẩn hóa type cho các nguồn khác OPhim
-        if (this._phimSource !== 'ophim' && (type === 'phim-moi' || type === 'phim-moi-cap-nhat')) {
-            url = `${this.phim}/danh-sach/phim-moi-cap-nhat?page=${page}`;
-        }
-
         return this.fetch(url);
     },
 
     /** Tìm kiếm phim */
     async searchPhim(keyword, page = 1) {
-        return this.fetch(`${this.phim}/tim-kiem?keyword=${encodeURIComponent(keyword)}&page=${page}`);
+        return this.fetch(`${this.phim}/v1/api/tim-kiem?keyword=${encodeURIComponent(keyword)}&page=${page}`);
     },
 
     /** Lấy chi tiết phim */
@@ -148,9 +121,7 @@ const API = {
         return this.fetch(`${this.phim}/quoc-gia/${slug}?page=${page}`);
     },
 
-    /**
-     * Tạo URL ảnh phim
-     */
+    /** Tạo URL ảnh phim */
     getPhimImageUrl(thumbUrl) {
         if (!thumbUrl) return '';
         if (thumbUrl.startsWith('http')) return thumbUrl;

@@ -140,3 +140,27 @@ button {
         transform: scale(1);
     }
 }
+
+/* Reader Navigation Transition */
+.reader-nav,
+.mobile-bottom-nav {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reader-nav.nav-hidden,
+.mobile-bottom-nav.nav-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Top nav slides up, bottom navs slide down */
+.reader-nav:first-child.nav-hidden {
+    transform: translateY(-100%);
+}
+
+.reader-nav:last-child.nav-hidden,
+.mobile-bottom-nav.nav-hidden {
+    transform: translateY(100%);
+}
