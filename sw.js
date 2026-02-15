@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qphim-v25';
+const CACHE_NAME = 'qphim-v26';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -35,6 +35,7 @@ const STATIC_ASSETS = [
     '/js/pages/watch.js',
     '/js/pages/bookmarks.js',
     '/js/pages/settings.js',
+    '/js/pages/filter.js',
     '/js/pages/detail.js',
 
     // JS - Components

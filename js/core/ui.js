@@ -226,9 +226,9 @@ function renderBottomNav() {
             <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg> 
             <span>Trang chủ</span>
         </button>
-        <button class="bottom-nav-item" onclick="renderDiscoveryPage();updateBottomNav(this)">
+        <button class="bottom-nav-item" onclick="renderFilterPage();updateBottomNav(this)">
             <svg viewBox="0 0 24 24"><path d="M12 10.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1c.61 0 1.1-.49 1.1-1.1s-.49-1.1-1.1-1.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19L6 18l3.81-8.19L18 6l-3.81 8.19z"/></svg>
-            <span>Khám phá</span>
+            <span>Bộ Lọc</span>
         </button>
         <button class="bottom-nav-item" onclick="toggleSearchMobile();updateBottomNav(this)">
             <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
@@ -585,72 +585,6 @@ function formatRelativeTime(dateStr) {
         return date.toLocaleDateString();
     } catch (e) { return ''; }
 }
-
-/* === DISCOVERY PAGE (FILTER) === */
-async function renderDiscoveryPage() {
-    document.title = 'Khám phá - QPhim & QTruyện';
-    const hero = document.getElementById('hero');
-    if (hero) hero.style.display = 'none';
-
-    const main = document.getElementById('movieSections');
-    if (!main) return;
-
-    main.innerHTML = '<div class="loading-spinner"></div>';
-    main.style.paddingTop = '80px';
-
-    // Reset Infinite Scroll
-    infiniteScrollState.active = false;
-
-    try {
-        const isPhim = currentMode === 'phim';
-        let genres = [];
-        let countries = [];
-
-        // Fetch Data
-        if (isPhim) {
-            const [gRes, cRes] = await Promise.all([API.getPhimCategories(), API.getPhimCountries()]);
-            genres = gRes?.data?.items || [];
-            countries = cRes?.data?.items || [];
-        } else {
-            const gRes = await API.getTruyenCategories();
-            genres = gRes?.data?.items || [];
-        }
-
-        let html = `
-            <section class="movie-section">
-                <div class="section-header">
-                    <h2 class="section-title">🧭 Khám phá ${isPhim ? 'Phim' : 'Truyện'}</h2>
-                     <button class="see-all" onclick="handleNav('home')">← Trang chủ</button>
-                </div>
-                
-                <div style="background:var(--bg-card); padding:20px; border-radius:12px; margin-bottom:20px;">
-                    <h3 style="color:var(--accent); margin-bottom:15px; font-size:1.1rem;">📂 Thể loại</h3>
-                    <div class="genre-grid-page">
-                        ${genres.map(g => `<button class="genre-tag-large" onclick="handleNav('${g.slug}', '${g.name}')">${g.name}</button>`).join('')}
-                    </div>
-                </div>
-        `;
-
-        if (isPhim && countries.length > 0) {
-            html += `
-                <div style="background:var(--bg-card); padding:20px; border-radius:12px;">
-                    <h3 style="color:#2ecc71; margin-bottom:15px; font-size:1.1rem;">🌍 Quốc gia</h3>
-                    <div class="genre-grid-page">
-                        ${countries.map(c => `<button class="genre-tag-large" onclick="handleNav('${c.slug}', '${c.name}')">${c.name}</button>`).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        html += '</section>';
-        main.innerHTML = html;
-
-    } catch (e) {
-        console.error(e);
-        main.innerHTML = '<p class="text-center p-5">Lỗi tải dữ liệu khám phá.</p>';
-    }
-}
-window.renderDiscoveryPage = renderDiscoveryPage;
 
 window.renderAll = renderAll;
 window.formatRelativeTime = formatRelativeTime;
