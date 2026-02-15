@@ -151,10 +151,17 @@ window.readChap = async (apiUrl, scrollToTop = false) => {
                 window.currentDetailData.chapters.forEach(s => {
                     if (s.server_data) all.push(...s.server_data);
                 });
+
+                // Sort tăng dần theo số chapter để tính Next/Prev đúng
+                all.sort((a, b) => parseFloat(a.chapter_name) - parseFloat(b.chapter_name));
+
                 const idx = all.findIndex(c => c.chapter_api_data === apiUrl);
                 if (idx !== -1) {
+                    // Prev: Chap nhỏ hơn (index - 1)
                     if (idx > 0) nav.prev = all[idx - 1].chapter_api_data;
+                    // Next: Chap lớn hơn (index + 1)
                     if (idx < all.length - 1) nav.next = all[idx + 1].chapter_api_data;
+
                     currentChapterName = `Ch.${all[idx].chapter_name}`;
 
                     // === LƯU LỊCH SỬ TRUYỆN ===
