@@ -55,7 +55,6 @@ window.renderShortsPage = (items) => {
             <div class="shorts-actions">
                 <button class="shorts-btn play-btn" onclick="playShort('${item.slug}')">▶</button>
                 <button class="shorts-btn" onclick="likeShort(this)">❤</button>
-                <button class="shorts-btn" onclick="shareShort('${item.slug}')">🔗</button>
                 <button class="shorts-btn" onclick="showDetail('${item.slug}')">ℹ</button>
             </div>
         `;
@@ -85,11 +84,6 @@ window.likeShort = (btn) => {
     btn.classList.toggle('active');
     btn.style.color = btn.classList.contains('active') ? '#e50914' : '#fff';
     btn.style.animation = 'pulse 0.3s';
-};
-
-window.shareShort = (slug) => {
-    const url = `${location.origin}?play=${slug}`;
-    navigator.clipboard.writeText(url).then(() => alert('Đã sao chép link!'));
 };
 
 function handleShortsScroll(e) {
