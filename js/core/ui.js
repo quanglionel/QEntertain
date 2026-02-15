@@ -305,10 +305,12 @@ window.handleNav = async (section, label) => {
         const filterSec = document.getElementById('filterSection');
         if (filterSec) {
             filterSec.remove();
-            // Render lại nội dung chính nếu bị xóa
             renderAll();
             return;
         }
+
+        // Close Shorts Page
+        if (window.closeShorts) window.closeShorts();
 
         renderAll();
         return;
@@ -317,6 +319,9 @@ window.handleNav = async (section, label) => {
     // 2. Logic điều hướng khác
     const hero = document.getElementById('hero');
     if (hero) hero.style.display = 'none';
+
+    // Close Shorts Page if navigating away
+    if (window.closeShorts) window.closeShorts();
 
     // Ẩn trang chi tiết khi chuyển sang mục khác (Thể loại, Tìm kiếm...)
     document.getElementById('detailPage')?.classList.add('hidden');
@@ -425,6 +430,14 @@ window.handleNav = async (section, label) => {
         }
 
         if (res?.data?.items) {
+            const items = res.data.items;
+
+            // Render Shorts Page (TikTok Style)
+            if (section === 'shorts' && window.renderShortsPage) {
+                renderShortsPage(items);
+                return;
+            }
+
             main.innerHTML = `
                 <section class="movie-section">
                     <div class="section-header">
@@ -435,7 +448,6 @@ window.handleNav = async (section, label) => {
                 </section>
             `;
             const grid = document.getElementById('gridContent');
-            const items = res.data.items;
             if (items.length === 0) grid.innerHTML = '<p>Trống.</p>';
             else items.forEach(item => grid.appendChild(createCard(item)));
         } else {

@@ -1,0 +1,158 @@
+/* === Shorts UI (TikTok Style) === */
+.shorts-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: #000;
+    z-index: 1000;
+    /* Behind Bottom Nav (z-index 1002/9999) */
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    display: none;
+    /* Hidden by default */
+}
+
+.shorts-container.active {
+    display: block;
+}
+
+/* Hide scrollbar */
+.shorts-container::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
+
+.shorts-item {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    scroll-snap-align: start;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #111;
+    overflow: hidden;
+}
+
+/* Fullscreen Poster */
+.shorts-poster {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.6;
+    /* Dim slightly */
+    filter: brightness(0.8);
+    transition: transform 0.5s ease;
+}
+
+/* Metadata Overlay */
+.shorts-info {
+    position: absolute;
+    bottom: 80px;
+    /* Above Bottom Nav */
+    left: 15px;
+    right: 60px;
+    /* Leave space for right actions */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    z-index: 2;
+}
+
+.shorts-quality {
+    display: inline-block;
+    padding: 4px 8px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.shorts-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    line-height: 1.3;
+    color: #fff;
+}
+
+.shorts-meta {
+    font-size: 0.9rem;
+    color: #ddd;
+    display: flex;
+    gap: 10px;
+}
+
+/* Action Buttons (Right Side) */
+.shorts-actions {
+    position: absolute;
+    bottom: 100px;
+    right: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 3;
+    align-items: center;
+}
+
+.shorts-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 1.2rem;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.shorts-btn:active {
+    transform: scale(0.9);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.shorts-btn.play-btn {
+    width: 55px;
+    height: 55px;
+    background: var(--accent);
+    border: none;
+    box-shadow: 0 4px 15px var(--accent-glow);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(229, 9, 20, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(229, 9, 20, 0);
+    }
+}
+
+/* Gradient Bottom Overlay */
+.shorts-gradient {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+    pointer-events: none;
+    z-index: 1;
+}
