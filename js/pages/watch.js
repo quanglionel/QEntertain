@@ -43,7 +43,9 @@ window.playEp = (url, epName, slug, name, thumb) => {
                 svData.forEach(ep => {
                     const btn = document.createElement('div');
                     const isActive = (ep.name.toString() === epName.toString());
-                    btn.className = `ep-item ${isActive ? 'active' : ''}`;
+                    const isWatched = window.checkWatched ? checkWatched(slug, ep.name) : false;
+
+                    btn.className = `ep-item ${isActive ? 'active' : ''} ${isWatched ? 'watched' : ''}`;
                     btn.innerHTML = `<span class="ep-name">Tập ${ep.name}</span>`;
                     btn.dataset.ep = ep.name;
 
@@ -93,8 +95,9 @@ window.playEp = (url, epName, slug, name, thumb) => {
         Player.initVideo(container, url, nextEpCallback, thumb);
     }
 
-    // Lưu history phim
+    // Lưu history phim & Mark Watched
     if (slug && name) {
+        if (window.markWatched) markWatched(slug, epName);
         saveHistory({
             id: slug,
             slug: slug,
@@ -183,13 +186,17 @@ window.readChap = async (apiUrl, scrollToTop = false, slug = null) => {
 
                     // === LƯU LỊCH SỬ TRUYỆN ===
                     if (window.currentDetailData) {
-                        console.log('Saving History Truyen:', window.currentDetailData.slug); // DEBUG LOG
+                        const cSlug = window.currentDetailData.slug;
+                        const cName = all[idx].chapter_name;
+                        if (window.markWatched) markWatched(cSlug, cName);
+
+                        console.log('Saving History Truyen:', cSlug); // DEBUG LOG
                         saveHistory({
                             id: window.currentDetailData._id,
-                            slug: window.currentDetailData.slug,
+                            slug: cSlug,
                             name: window.currentDetailData.name,
                             thumb_url: window.currentDetailData.thumb_url,
-                            chapter_name: all[idx].chapter_name,
+                            chapter_name: cName,
                             chapter_api_data: apiUrl,
                             time: Date.now()
                         });

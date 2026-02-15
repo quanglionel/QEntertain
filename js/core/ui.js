@@ -171,6 +171,10 @@ function renderHeader() {
             </div>
             <div class="header-right">
                 <div class="mobile-shortcuts">
+                    <button class="header-icon-btn noti-btn" onclick="toggleNotiModal()" aria-label="Thông báo">
+                        🔔
+                        <span class="noti-badge" id="noti-badge">0</span>
+                    </button>
                     <button class="header-icon-btn" onclick="handleNav('history')" aria-label="Lịch sử">${ICONS.history}</button>
                     <button class="header-icon-btn" onclick="openSettings()" aria-label="Cài đặt">⚙️</button>
                     <button class="header-icon-btn" onclick="handleNav('bookmarks')" aria-label="Tủ đồ" style="color:#ff5555;">❤</button>
@@ -184,6 +188,11 @@ function renderHeader() {
     `;
 
     if (window.initSearchBox) window.initSearchBox();
+
+    // Init Header Scroll Effect
+    window.addEventListener('scroll', () => {
+        header.classList.toggle('scrolled', window.scrollY > 50);
+    });
 }
 
 // Keep toggleMode logic
@@ -200,7 +209,12 @@ window.handleNav = async (section, label) => {
     const main = document.getElementById('movieSections');
     if (!main) return;
 
-    main.innerHTML = `<div class="loading-spinner-container" style="padding:100px 0;text-align:center;"><div class="loading-spinner"></div><p style="margin-top:10px;color:#888;">Đang tải ${label}...</p></div>`;
+    // Use Skeleton instead of Spinner
+    if (typeof showGridSkeleton === 'function') {
+        showGridSkeleton(main);
+    } else {
+        main.innerHTML = `<div class="loading-spinner-container" style="padding:100px 0;text-align:center;"><div class="loading-spinner"></div><p style="margin-top:10px;color:#888;">Đang tải ${label}...</p></div>`;
+    }
     main.style.paddingTop = '80px';
 
     // Reset Infinite Scroll
@@ -339,79 +353,112 @@ function renderList(containerId, items) {
     items.forEach(item => { if (item) container.appendChild(createCard(item)); });
 }
 
+
+/* === SKELETON LOADING UI === */
+function createSkeletonCard() {
+    const card = document.createElement('div');
+    card.className = 'movie-card skeleton-card';
+    card.style.pointerEvents = 'none';
+    card.innerHTML = `
+        <div class="skeleton-poster"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text short"></div>
+    `;
+    return card;
+}
+
+function renderSkeleton(containerId, count = 10, isGrid = false) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+
+    // Grid layout vs List layout styling
+    if (isGrid) {
+        // Assume container is a grid
+    } else {
+        // Horizontal list
+    }
+
+    for (let i = 0; i < count; i++) {
+        container.appendChild(createSkeletonCard());
+    }
+}
+
+// Update renderSections to use skeleton
 function renderSections() {
     const container = document.getElementById('movieSections');
     if (!container) return;
     container.innerHTML = '';
 
-    // Render Main Sections
     const sections = currentMode === 'phim' ? PHIM_SECTIONS : TRUYEN_SECTIONS;
-    const mainHTML = sections.map(section => `
-        <section class="movie-section">
-            <div class="section-header">
-                <h2 class="section-title">${section.title}</h2>
-                <div class="section-controls">
-                    <button class="scroll-btn" onclick="scrollList('${section.listId}', -1)">❮</button>
-                    <button class="scroll-btn" onclick="scrollList('${section.listId}', 1)">❯</button>
-                </div>
-            </div>
-            <div class="movie-list" id="${section.listId}">
-                <div class="loading-spinner">...</div>
-            </div>
-        </section>
-    `).join('');
+    const isPhim = currentMode === 'phim';
 
-    // Render History Section (Using history.js helper if available)
+    // Render History if exists
     if (window.getHistory) {
-        const isPhim = currentMode === 'phim';
         const history = getHistory(isPhim ? 'phim' : 'truyen');
         if (history.length > 0) {
-            const hSec = `
-                <section class="movie-section">
-                    <div class="section-header">
-                        <h2 class="section-title">🕒 ${isPhim ? 'Xem tiếp' : 'Đọc tiếp'}</h2>
-                        <button class="see-all" onclick="handleNav('history')">Xem tất cả</button>
-                    </div>
-                    <div class="movie-list" id="homeHistoryList"></div>
-                </section>
-             `;
-            container.innerHTML = hSec + mainHTML;
+            const hSec = document.createElement('section');
+            hSec.className = 'movie-section';
+            hSec.innerHTML = `
+                <div class="section-header">
+                    <h2 class="section-title">🕒 ${isPhim ? 'Xem tiếp' : 'Đọc tiếp'}</h2>
+                    <button class="see-all" onclick="handleNav('history')">Xem tất cả</button>
+                </div>
+                <div class="movie-list" id="homeHistoryList"></div>
+           `;
+            container.appendChild(hSec);
 
-            // Render history items
-            const list = container.querySelector('#homeHistoryList');
+            const list = hSec.querySelector('#homeHistoryList');
             history.slice(0, 10).forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'movie-card';
-                if (!isPhim) {
-                    card.onclick = () => readChap(item.chapter_api_data);
-                } else {
-                    card.onclick = () => {
-                        showDetail(item.slug).then(() => {
-                            playEp(item.episode_url, item.episode_name, item.slug, item.name, item.thumb_url);
-                        });
-                    };
-                }
+                card.onclick = isPhim ?
+                    () => showDetail(item.slug).then(() => playEp(item.episode_url, item.episode_name, item.slug, item.name, item.thumb_url)) :
+                    () => readChap(item.chapter_api_data, true, item.slug);
+
                 const imgUrl = isPhim ? API.getPhimImageUrl(item.thumb_url) : API.getTruyenImageUrl(item.thumb_url);
                 const label = isPhim ? `Tập ${item.episode_name}` : `Ch.${item.chapter_name}`;
-
                 card.innerHTML = `
                     <div class="movie-poster">
                         <img class="movie-poster-img" src="${imgUrl}" loading="lazy" onerror="this.parentElement.style.backgroundColor='#333'">
-                        <div class="movie-poster-overlay">
-                            <div class="play-icon">${isPhim ? ICONS.play : ICONS.book}</div>
-                        </div>
+                        <div class="movie-poster-overlay"><div class="play-icon">${isPhim ? ICONS.play : ICONS.book}</div></div>
                         <span class="movie-quality" style="background:var(--accent);">${label}</span>
                     </div>
                     <div class="movie-info"><h3 class="movie-title">${item.name}</h3></div>
-                 `;
+                `;
                 list.appendChild(card);
             });
-        } else {
-            container.innerHTML = mainHTML;
         }
-    } else {
-        container.innerHTML = mainHTML;
     }
+
+    // Render Main Sections
+    sections.forEach(section => {
+        const sec = document.createElement('section');
+        sec.className = 'movie-section';
+        sec.innerHTML = `
+            <div class="section-header">
+                <h2 class="section-title">${section.title}</h2>
+                <div class="section-controls">
+                    <button class="see-all" onclick="handleNav('${section.listId}')">Xem thêm</button>
+                </div>
+            </div>
+            <div class="movie-list" id="${section.listId}"></div>
+        `;
+        container.appendChild(sec);
+        // Render Skeleton immediately
+        renderSkeleton(section.listId, 6);
+    });
+}
+window.renderSections = renderSections; // Expose override
+
+// Helper for handleNav skeleton
+function showGridSkeleton(mainElement) {
+    mainElement.innerHTML = `
+        <section class="movie-section">
+            <div class="movie-grid" id="skeletonGrid"></div>
+        </section>
+    `;
+    renderSkeleton('skeletonGrid', 12, true);
 }
 
 // Global scroll function
@@ -428,6 +475,10 @@ async function renderAll() {
     renderHeader();
     renderSections();
 
+    // Check Notifications
+    if (window.updateBellBadge) window.updateBellBadge();
+    if (window.checkNewChapters) window.checkNewChapters();
+
     const isPhim = currentMode === 'phim';
     try {
         const apiData = isPhim ? await API.getPhimHome() : await API.getTruyenHome();
@@ -441,6 +492,8 @@ async function renderAll() {
                 let secItems = [...items];
                 if (i === 1) secItems.reverse();
                 else if (i === 2) secItems.sort(() => Math.random() - 0.5);
+
+                // Clear skeleton and render real items
                 renderList(sec.listId, secItems);
             });
         }

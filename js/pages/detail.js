@@ -186,6 +186,7 @@ function renderListButtons(item, isPhim) {
                 items = items.concat(svData.map(ep => ({
                     label: `Tập ${ep.name}`,
                     value: ep.link_m3u8 || ep.link_embed,
+                    id: ep.name,
                     data: ep,
                     onClick: () => {
                         const safeName = item.name.replace(/'/g, "\\'");
@@ -201,7 +202,8 @@ function renderListButtons(item, isPhim) {
             items = svData.map(chap => ({
                 label: `Chương ${chap.chapter_name}`,
                 value: chap.chapter_api_data,
-                onClick: () => readChap(chap.chapter_api_data, true, item.slug) // Pass slug
+                id: chap.chapter_name,
+                onClick: () => readChap(chap.chapter_api_data, true, item.slug)
             }));
         }
     }
@@ -249,6 +251,9 @@ function renderListButtons(item, isPhim) {
             items.slice(start, end).forEach(dataItem => {
                 const btn = document.createElement('button');
                 btn.className = 'chapter-item';
+                if (window.checkWatched && checkWatched(item.slug, dataItem.id)) {
+                    btn.classList.add('watched');
+                }
                 btn.textContent = dataItem.label;
                 btn.onclick = dataItem.onClick;
                 btn.style.cssText = 'padding:10px;background:#252525;border:1px solid #333;color:#ccc;border-radius:4px;text-align:center;cursor:pointer;';
@@ -280,6 +285,9 @@ function renderListButtons(item, isPhim) {
         items.forEach(dataItem => {
             const btn = document.createElement('button');
             btn.className = 'chapter-item';
+            if (window.checkWatched && checkWatched(item.slug, dataItem.id)) {
+                btn.classList.add('watched');
+            }
             btn.innerText = dataItem.label;
             btn.onclick = dataItem.onClick;
             btn.style.cssText = 'padding:10px;background:#252525;border:1px solid #333;color:#ccc;border-radius:4px;text-align:center;cursor:pointer;';

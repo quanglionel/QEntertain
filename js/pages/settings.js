@@ -92,7 +92,9 @@ function createSettingsModal() {
 }
 
 function renderSettingsContent() {
-    const container = document.getElementById('settingsList');
+    let container = document.getElementById('settingsList');
+    if (!container) container = document.getElementById('settingsBody');
+    if (!container) return; // Safety check
     const settings = getSettings();
 
     const items = [

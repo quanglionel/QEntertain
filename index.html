@@ -15,91 +15,154 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/variables.css">
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/header.css">
-    <link rel="stylesheet" href="css/hero.css">
-    <link rel="stylesheet" href="css/movies.css">
-    <link rel="stylesheet" href="css/footer.css">
-    <link rel="stylesheet" href="css/detail.css">
-    <link rel="stylesheet" href="css/watch.css">
-    <link rel="stylesheet" href="css/chapter_list.css">
-    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/base.css?v=18">
+    <link rel="stylesheet" href="css/header.css?v=18">
+    <link rel="stylesheet" href="css/hero.css?v=18">
+    <link rel="stylesheet" href="css/movies.css?v=18">
+    <link rel="stylesheet" href="css/footer.css?v=18">
+    <link rel="stylesheet" href="css/detail.css?v=18">
+    <link rel="stylesheet" href="css/watch.css?v=18">
+    <link rel="stylesheet" href="css/chapter_list.css?v=18">
+    <link rel="stylesheet" href="css/responsive.css?v=18">
+    <link rel="stylesheet" href="css/notification.css?v=18">
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#141414">
 </head>
 
 <body>
-    <!-- Các container - nội dung render bằng JS -->
-    <header class="header" id="header"></header>
+    <!-- App Container -->
+    <div id="app">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
 
+        <!-- Sidebar Content -->
+        <div id="sidebar" class="sidebar"></div>
 
+        <!-- Header -->
+        <header id="header" class="header"></header>
 
-    <main class="main-content" id="movieSections"></main>
-    <footer class="footer" id="footer"></footer>
+        <!-- Hero Slider -->
+        <div id="hero" class="hero-slider"></div>
 
-    <!-- Detail Overlay (thông tin truyện/phim) -->
+        <!-- Filter Bar -->
+        <div id="filterBar" class="filter-bar"></div>
+
+        <!-- Main Content -->
+        <main id="movieSections" class="main-content"></main>
+    </div>
+
+    <!-- Detail Overlay -->
     <div id="detailPage" class="detail-page hidden">
-        <div class="detail-backdrop"></div>
-        <button class="close-detail" id="closeDetailBtn" aria-label="Đóng">✕</button>
+        <div class="detail-backdrop" onclick="closeDetail()"></div>
+        <div class="close-detail" id="closeDetailBtn" onclick="closeDetail()">×</div>
+
         <div class="detail-container">
-            <div class="detail-content" id="detailContent">
-                <!-- Nội dung chi tiết render bằng JS -->
-                <div class="loading-spinner">Đang tải...</div>
-            </div>
+            <div id="detailContent"></div>
         </div>
     </div>
 
-    <!-- Watch Page (Xem phim - tách biệt) -->
-    <div id="watchPage" class="watch-page hidden">
-        <div class="watch-header">
-            <button class="watch-back-btn" id="watchBackBtn">← Quay lại</button>
-            <h2 class="watch-title" id="watchTitle">Loading...</h2>
-        </div>
-        <div class="watch-content">
-            <div class="watch-main">
-                <div id="watchPlayerContainer" class="video-container-fullscreen"></div>
+    <!-- Watch Page (Movies) -->
+    <div id="watchPage" class="detail-page hidden" style="z-index: 2005;">
+        <div class="detail-backdrop"></div>
+        <div class="detail-container" style="max-width: 1400px; padding-top: 20px;">
+            <div class="watch-header" style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+                <button id="watchBackBtn" class="nav-btn"
+                    style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:1.2rem;cursor:pointer;">←</button>
+                <h2 id="watchTitle" style="margin:0;font-size:1.2rem;flex:1;">Đang xem phim...</h2>
             </div>
-            <div class="watch-sidebar">
-                <div class="sidebar-header">
-                    <h3>Danh sách tập</h3>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="autoNextToggle" checked>
-                        <span class="slider round"></span>
-                        <span class="label-text">Auto Next</span>
-                    </label>
+            <div class="watch-layout" style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div class="watch-player-col" style="flex: 1; min-width: 300px;">
+                    <div id="watchPlayerContainer" class="video-container" style="background:#000;aspect-ratio:16/9;">
+                    </div>
+                    <div class="watch-controls"
+                        style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                        <div class="auto-next">
+                            <label
+                                style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#ccc;font-size:0.9rem;">
+                                <input type="checkbox" id="autoNextToggle" checked> Tự chuyển tập
+                            </label>
+                        </div>
+                        <div class="server-error-report">
+                            <button onclick="alert('Đã báo lỗi!')"
+                                style="background:none;border:1px solid #444;color:#888;padding:5px 10px;border-radius:4px;font-size:0.8rem;cursor:pointer;">Báo
+                                lỗi</button>
+                        </div>
+                    </div>
                 </div>
-                <div id="watchEpisodeList" class="episode-list-vertical"></div>
+                <div class="watch-list-col"
+                    style="width: 350px; flex-shrink: 0; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; max-height: 80vh;">
+                    <div style="padding: 15px; border-bottom: 1px solid var(--border); font-weight: 700;">Danh sách tập
+                    </div>
+                    <div id="watchEpisodeList" style="flex: 1; overflow-y: auto; padding: 10px;"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Reader Overlay (đọc truyện - toàn màn hình, tách biệt detail) -->
+    <!-- Reader Page (Comics) -->
     <div id="readerPage" class="reader-page hidden">
-        <button class="reader-back-btn" id="readerBackBtn" aria-label="Quay lại">← Quay lại</button>
+        <div class="reader-nav">
+            <button id="readerBackBtn" class="nav-btn">← Quay lại</button>
+            <div class="chapter-indicator-wrap">
+                <button id="currentChapterBtn" class="chapter-indicator">Chương ...</button>
+                <div id="chapterDropdown" class="chapter-dropdown"></div>
+            </div>
+            <div style="flex:1"></div>
+            <button id="readerPrevBtn" class="nav-btn" disabled>❮ Trước</button>
+            <button id="readerNextBtn" class="nav-btn" disabled>Sau ❯</button>
+        </div>
+
         <div id="readerContainer" class="reader-full-container"></div>
+
+        <button id="readerScrollTop" class="reader-scroll-top">↑</button>
+        <div id="readerProgress" class="reader-progress"></div>
+        <button id="readerLoadModeBtn" class="reader-load-mode">Chế độ tải: Tuần tự</button>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Cài Đặt</h3>
+                <span class="close-modal" onclick="closeSettings()">×</span>
+            </div>
+            <div class="modal-body" id="settingsBody">
+                <!-- Settings injected here -->
+            </div>
+        </div>
     </div>
 
     <!-- Plyr Player -->
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
     <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 
-    <!-- HLS.js cho Player -->
+    <!-- HLS.js -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 
     <!-- JavaScript -->
-    <script src="js/data.js?v=14"></script>
-    <script src="js/api.js?v=14"></script>
-    <script src="js/player.js?v=14"></script>
-    <script src="js/history.js?v=14"></script>
-    <script src="js/play.js?v=14"></script>
-    <script src="js/bookmarks.js?v=14"></script>
-    <script src="js/settings.js?v=14"></script>
-    <script src="js/detail.js?v=14"></script>
-    <script src="js/components.js?v=14"></script>
-    <script src="js/slider.js?v=14"></script>
-    <script src="js/theme.js?v=14"></script>
-    <script src="js/search.js?v=14"></script>
-    <script src="js/ui.js?v=14"></script>
-    <script src="js/app.js?v=14"></script>
-    <script src="js/protect.js"></script>
+    <script src="js/core/config.js?v=20"></script>
+    <script src="js/core/api.js?v=20"></script>
+    <script src="js/core/player.js?v=20"></script>
+
+    <!-- Services/Pages -->
+    <script src="js/pages/history.js?v=20"></script>
+    <script src="js/pages/watch.js?v=20"></script>
+    <script src="js/pages/bookmarks.js?v=20"></script>
+    <script src="js/pages/settings.js?v=20"></script>
+    <script src="js/pages/detail.js?v=20"></script>
+
+    <!-- Components -->
+    <script src="js/components/notification.js?v=20"></script>
+    <script src="js/core/ui.js?v=20"></script> <!-- Was components.js -->
+    <script src="js/components/slider.js?v=20"></script>
+    <script src="js/core/theme.js?v=20"></script>
+    <script src="js/components/search.js?v=20"></script>
+
+    <!-- Main -->
+    <script src="js/core/main.js?v=20"></script> <!-- Was app.js -->
+    <script src="js/core/protect.js"></script>
 </body>
 
 </html>

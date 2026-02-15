@@ -784,3 +784,26 @@
         justify-content: center;
     }
 }
+
+/* Watched Episode/Chapter */
+.server-btn.watched,
+.chapter-item.watched {
+    opacity: 0.6;
+    background: rgba(255, 255, 255, 0.05);
+    color: #888;
+    position: relative;
+    border-color: transparent;
+}
+
+.server-btn.watched::after,
+.chapter-item.watched::after {
+    content: "👁️";
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    font-size: 0.7rem;
+    background: #000;
+    border-radius: 50%;
+    padding: 2px;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+}

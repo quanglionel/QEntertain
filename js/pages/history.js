@@ -128,3 +128,36 @@ window.getHistory = getHistory;
 window.saveHistory = saveHistory;
 window.renderHistoryPage = renderHistoryPage;
 window.clearHistory = clearHistory;
+
+// ============================================
+// Watched Episodes / Chapters Tracking
+// ============================================
+function getWatchedList(slug) {
+    try {
+        const store = JSON.parse(localStorage.getItem('qhub-watched-episodes') || '{}');
+        return store[slug] || [];
+    } catch (e) { return []; }
+}
+
+function markWatched(slug, episodeId) {
+    try {
+        const store = JSON.parse(localStorage.getItem('qhub-watched-episodes') || '{}');
+        if (!store[slug]) store[slug] = [];
+
+        // Add if not exists
+        if (!store[slug].includes(episodeId)) {
+            store[slug].push(episodeId);
+            localStorage.setItem('qhub-watched-episodes', JSON.stringify(store));
+        }
+    } catch (e) { console.error(e); }
+}
+
+function checkWatched(slug, episodeId) {
+    const list = getWatchedList(slug);
+    return list.includes(episodeId);
+}
+
+// Expose
+window.getWatchedList = getWatchedList;
+window.markWatched = markWatched;
+window.checkWatched = checkWatched;

@@ -27,6 +27,7 @@ function toggleBookmark(item, type) {
         // Remove
         list.splice(index, 1); // Xóa khỏi danh sách
         localStorage.setItem(key, JSON.stringify(list));
+        if (window.showToast) window.showToast('Đã xóa khỏi Tủ đồ', 'warning');
         return false; // return new state: unbookmarked
     } else {
         // Add
@@ -40,6 +41,7 @@ function toggleBookmark(item, type) {
         };
         list.unshift(newItem); // Thêm vào đầu
         localStorage.setItem(key, JSON.stringify(list));
+        if (window.showToast) window.showToast('Đã thêm vào Tủ đồ', 'success');
         return true; // return new state: bookmarked
     }
 }
