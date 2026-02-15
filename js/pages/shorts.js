@@ -35,12 +35,15 @@ window.renderShortsPage = (items) => {
     items.forEach((item, index) => {
         const slide = document.createElement('div');
         slide.className = 'shorts-item';
+        slide.dataset.slug = item.slug;
+        slide.dataset.index = index;
 
         const imgUrl = API.getPhimImageUrl(item.thumb_url);
         const quality = item.quality || 'HD';
         const eps = item.episode_current || '??';
 
         slide.innerHTML = `
+            <div class="shorts-video-container" id="player-${item.slug}"></div>
             <img class="shorts-poster" src="${imgUrl}" loading="lazy">
             <div class="shorts-gradient"></div>
 
@@ -53,7 +56,7 @@ window.renderShortsPage = (items) => {
             </div>
 
             <div class="shorts-actions">
-                <button class="shorts-btn play-btn" onclick="playShort('${item.slug}')">▶</button>
+                <button class="shorts-btn play-btn" onclick="playShortInSlide('${item.slug}', this)">▶</button>
                 <button class="shorts-btn" onclick="likeShort(this)">❤</button>
                 <button class="shorts-btn" onclick="showDetail('${item.slug}')">ℹ</button>
             </div>
@@ -61,55 +64,78 @@ window.renderShortsPage = (items) => {
         container.appendChild(slide);
     });
 
-    // 4. Adjust Header/Nav (Optional: Hide Header for immersive experience?)
-    // For now we keep header but maybe transparent?
-
-    // 5. Scroll Listener (for auto-paging or analytics)
-    container.addEventListener('scroll', handleShortsScroll);
+    // 4. Init Auto-Play Observer
+    initShortsObserver();
 };
 
-// Play Logic: Go to Watch Page directly (Auto Next supported)
-window.playShort = async (slug) => {
+// Intersection Observer for AutoPlay
+function initShortsObserver() {
+    const options = { threshold: 0.7 }; // 70% visible
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const slug = entry.target.dataset.slug;
+                console.log('👀 Active Short:', slug);
+                playShortInSlide(slug, entry.target.querySelector('.play-btn'));
+            } else {
+                // Stop player if not visible
+                const playerContainer = entry.target.querySelector('.shorts-video-container');
+                if (playerContainer) {
+                    playerContainer.innerHTML = '';
+                    playerContainer.classList.remove('active');
+                    entry.target.querySelector('.shorts-poster')?.classList.remove('hidden');
+                }
+            }
+        });
+    }, options);
+
+    document.querySelectorAll('.shorts-item').forEach(item => observer.observe(item));
+}
+
+// Fixed Play Logic for Slide
+window.playShortInSlide = async (slug, btn) => {
+    const slide = btn.closest('.shorts-item');
+    const playerContainer = slide.querySelector('.shorts-video-container');
+    const poster = slide.querySelector('.shorts-poster');
+
+    if (playerContainer.classList.contains('active')) return; // Already playing
+
     try {
-        // 1. Fetch Detail Data first
         const res = await API.getPhimDetail(slug);
-        if (!res || !res.status) {
-            console.error('Fetch detail failed');
-            return;
-        }
+        if (!res || !res.status) return;
 
         const data = res.movie;
-        if (!data) return;
+        const episodes = res.episodes;
 
-        // 2. Set global context for Watch Page to use
-        window.currentDetailData = data;
-        window.currentDetailData.episodes = res.episodes;
-
-        // 3. Get First Episode
         let firstEp = null;
-        if (res.episodes && res.episodes.length > 0) {
-            const sv = res.episodes[0];
+        if (episodes && episodes.length > 0) {
+            const sv = episodes[0];
             const items = sv.server_data || sv.items;
-            if (items && items.length > 0) {
-                firstEp = items[0];
-            }
+            if (items && items.length > 0) firstEp = items[0];
         }
 
         if (firstEp) {
             const link = firstEp.link_embed || firstEp.link_m3u8;
-            // Use API helper to get full image url
-            const thumb = API.getPhimImageUrl(data.thumb_url);
             const backupUrl = (firstEp.link_m3u8 && firstEp.link_embed && firstEp.link_m3u8 !== firstEp.link_embed) ? firstEp.link_m3u8 : null;
+            const thumb = API.getPhimImageUrl(data.thumb_url);
 
-            // 4. Call PlayEp (Handles UI switching and Player init)
-            playEp(link, firstEp.name, slug, data.name, thumb, backupUrl);
-        } else {
-            alert('Phim đang cập nhật, vui lòng thử lại sau!');
+            // Show player container
+            playerContainer.classList.add('active');
+            poster.classList.add('hidden');
+
+            // Initialize Player directly in slide
+            if (window.Player) {
+                // Note: We use null for nextEpCallback because Shorts usually loop or manual swipe
+                Player.initVideo(playerContainer, link, null, thumb, backupUrl);
+            }
         }
-
     } catch (e) {
-        console.error('Play Short Error:', e);
+        console.error('Play Slide Error:', e);
     }
+};
+
+window.playShort = (slug) => {
+    // Legacy support if needed, but we use playShortInSlide now
 };
 
 window.likeShort = (btn) => {
