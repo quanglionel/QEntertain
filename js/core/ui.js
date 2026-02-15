@@ -579,10 +579,55 @@ function renderSections() {
 
                 // Click Action
                 if (isPhim) {
-                    card.onclick = () => {
-                        showDetail(item.slug).then(() => {
-                            if (item.episode_url) playEp(item.episode_url, item.episode_name, item.slug, item.name, item.thumb_url);
-                        });
+                    card.onclick = async () => {
+                        try {
+                            const res = await API.getPhimDetail(item.slug);
+                            if (res && res.status) {
+                                const movie = res.movie;
+                                // Check Category
+                                const isShort = movie.category && movie.category.some(c => c.slug === 'short-drama' || c.slug === 'phim-ngan');
+
+                                // Set global context
+                                window.currentDetailData = movie;
+                                window.currentDetailData.episodes = res.episodes;
+
+                                if (isShort && window.renderShortsPage) {
+                                    // Fetch Shorts List to populate feed
+                                    const listRes = await API.getPhimByCategory('short-drama');
+                                    let shortItems = listRes?.data?.items || [];
+
+                                    // Ensure current movie is first
+                                    shortItems = shortItems.filter(i => i.slug !== item.slug);
+                                    shortItems.unshift(movie);
+
+                                    renderShortsPage(shortItems);
+
+                                    // Play History Episode
+                                    if (item.episode_url) {
+                                        playEp(item.episode_url, item.episode_name, item.slug, item.name, item.thumb_url);
+                                    } else {
+                                        // Play first episode if history url missing?
+                                        // Usually history has it.
+                                    }
+                                    return;
+                                }
+
+                                // Normal Play
+                                if (item.episode_url) {
+                                    playEp(item.episode_url, item.episode_name, item.slug, item.name, item.thumb_url);
+                                } else {
+                                    showDetail(item.slug);
+                                }
+                            } else {
+                                // Fallback
+                                showDetail(item.slug);
+                            }
+                        } catch (e) {
+                            console.error(e);
+                            showDetail(item.slug).then(() => {
+                                if (item.episode_url) playEp(item.episode_url, item.episode_name, item.slug, item.name, item.thumb_url);
+                            });
+                        }
                     };
                 } else {
                     card.onclick = () => {
