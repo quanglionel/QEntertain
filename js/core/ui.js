@@ -582,10 +582,10 @@ function renderSections() {
                     card.onclick = async () => {
                         try {
                             const res = await API.getPhimDetail(item.slug);
-                            if (res && res.status) {
+                            if (res && res.status && res.movie) {
                                 const movie = res.movie;
                                 // Check Category
-                                const isShort = movie.category && movie.category.some(c => c.slug === 'short-drama' || c.slug === 'phim-ngan');
+                                const isShort = movie.category && Array.isArray(movie.category) && movie.category.some(c => c.slug === 'short-drama' || c.slug === 'phim-ngan');
 
                                 // Set global context
                                 window.currentDetailData = movie;
