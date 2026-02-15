@@ -6,10 +6,7 @@ function getHistory(type) {
 
     // Using keys consistent with legacy code
     const key = (type === 'phim') ? 'qhub-history-phim' : 'qhub-history-truyen';
-    try {
-        const d = localStorage.getItem(key);
-        return d ? JSON.parse(d) : [];
-    } catch (e) { return []; }
+    return QStorage.get(key, []);
 }
 
 function saveHistory(item) {
@@ -31,7 +28,7 @@ function saveHistory(item) {
 
     if (list.length > 50) list.pop();
 
-    localStorage.setItem(key, JSON.stringify(list));
+    QStorage.save(key, list);
 }
 
 function renderHistoryPage() {
@@ -133,23 +130,19 @@ window.clearHistory = clearHistory;
 // Watched Episodes / Chapters Tracking
 // ============================================
 function getWatchedList(slug) {
-    try {
-        const store = JSON.parse(localStorage.getItem('qhub-watched-episodes') || '{}');
-        return store[slug] || [];
-    } catch (e) { return []; }
+    const store = QStorage.get('qhub-watched-episodes', {});
+    return store[slug] || [];
 }
 
 function markWatched(slug, episodeId) {
-    try {
-        const store = JSON.parse(localStorage.getItem('qhub-watched-episodes') || '{}');
-        if (!store[slug]) store[slug] = [];
+    const store = QStorage.get('qhub-watched-episodes', {});
+    if (!store[slug]) store[slug] = [];
 
-        // Add if not exists
-        if (!store[slug].includes(episodeId)) {
-            store[slug].push(episodeId);
-            localStorage.setItem('qhub-watched-episodes', JSON.stringify(store));
-        }
-    } catch (e) { console.error(e); }
+    // Add if not exists
+    if (!store[slug].includes(episodeId)) {
+        store[slug].push(episodeId);
+        QStorage.save('qhub-watched-episodes', store);
+    }
 }
 
 function checkWatched(slug, episodeId) {

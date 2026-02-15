@@ -82,3 +82,42 @@ const TRUYEN_SECTIONS = [
     { id: "sectionManhwa", listId: "manhwaList", icon: "🇰🇷", title: "Manhwa" },
     { id: "sectionManhua", listId: "manhuaList", icon: "🇨🇳", title: "Manhua" },
 ];
+
+/* === Storage Helper (with Quota Management) === */
+const QStorage = {
+    save: (key, value) => {
+        try {
+            const strVal = typeof value === 'string' ? value : JSON.stringify(value);
+            localStorage.setItem(key, strVal);
+            return true;
+        } catch (e) {
+            console.warn('⚠️ Storage full, cleaning up...', key);
+            QStorage.cleanup();
+            try {
+                localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+                return true;
+            } catch (err) {
+                console.error('❌ Still full after cleanup');
+                return false;
+            }
+        }
+    },
+    get: (key, defaultVal = null) => {
+        try {
+            const d = localStorage.getItem(key);
+            if (!d) return defaultVal;
+            try { return JSON.parse(d); } catch (e) { return d; }
+        } catch (e) { return defaultVal; }
+    },
+    cleanup: () => {
+        // Clear all playback progress as they are often redundant
+        console.log('🧹 Clearing playback progress to free space');
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith('qhub-playback-')) keysToRemove.push(k);
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+    }
+};
+window.QStorage = QStorage;

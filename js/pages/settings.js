@@ -10,14 +10,11 @@ const DEFAULT_SETTINGS = {
 };
 
 function getSettings() {
-    try {
-        const s = localStorage.getItem('qhub-settings');
-        return s ? { ...DEFAULT_SETTINGS, ...JSON.parse(s) } : DEFAULT_SETTINGS;
-    } catch (e) { return DEFAULT_SETTINGS; }
+    return QStorage.get('qhub-settings', DEFAULT_SETTINGS);
 }
 
 function saveSettings(newSettings) {
-    localStorage.setItem('qhub-settings', JSON.stringify(newSettings));
+    QStorage.save('qhub-settings', newSettings);
     applySettings(newSettings);
 }
 
@@ -207,8 +204,7 @@ window.importAppData = (input) => {
 
                 // Restore logic
                 Object.keys(json.data).forEach(key => {
-                    const val = json.data[key];
-                    localStorage.setItem(key, typeof val === 'object' ? JSON.stringify(val) : val);
+                    QStorage.save(key, json.data[key]);
                 });
 
                 alert('Khôi phục thành công! Đang tải lại trang...');

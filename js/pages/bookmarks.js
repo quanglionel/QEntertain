@@ -2,12 +2,8 @@
 
 // Helper: Get list from LocalStorage
 function getBookmarks(type) {
-    // type: 'phim' | 'truyen'
     const key = (type === 'phim') ? 'qhub-bookmarks-phim' : 'qhub-bookmarks-truyen';
-    try {
-        const d = localStorage.getItem(key);
-        return d ? JSON.parse(d) : [];
-    } catch (e) { return []; }
+    return QStorage.get(key, []);
 }
 
 // Check if item is bookmarked
@@ -25,24 +21,23 @@ function toggleBookmark(item, type) {
 
     if (index !== -1) {
         // Remove
-        list.splice(index, 1); // Xóa khỏi danh sách
-        localStorage.setItem(key, JSON.stringify(list));
+        list.splice(index, 1);
+        QStorage.save(key, list);
         if (window.showToast) window.showToast('Đã xóa khỏi Tủ đồ', 'warning');
-        return false; // return new state: unbookmarked
+        return false;
     } else {
         // Add
-        // Chỉ lưu thông tin cần thiết để render card
         const newItem = {
             id: item._id || item.slug,
             slug: item.slug,
             name: item.name,
             thumb_url: item.thumb_url,
-            time: Date.now() // Thời gian thêm vào tủ
+            time: Date.now()
         };
-        list.unshift(newItem); // Thêm vào đầu
-        localStorage.setItem(key, JSON.stringify(list));
+        list.unshift(newItem);
+        QStorage.save(key, list);
         if (window.showToast) window.showToast('Đã thêm vào Tủ đồ', 'success');
-        return true; // return new state: bookmarked
+        return true;
     }
 }
 

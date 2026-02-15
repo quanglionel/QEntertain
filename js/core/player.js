@@ -193,7 +193,7 @@ const Player = {
 
         if (typeof video !== 'undefined' && video) {
             const saveKey = `qhub-playback-${url}`;
-            const savedTime = parseFloat(localStorage.getItem(saveKey) || '0');
+            const savedTime = parseFloat(QStorage.get(saveKey, 0));
 
             if (savedTime > 10) {
                 video.addEventListener('loadedmetadata', () => {
@@ -221,7 +221,7 @@ const Player = {
             this._saveInterval = setInterval(() => {
                 // Check plyr instance
                 if (this.plyr && !this.plyr.paused) {
-                    localStorage.setItem(saveKey, this.plyr.currentTime);
+                    QStorage.save(saveKey, this.plyr.currentTime);
                 }
             }, 5000);
         }
