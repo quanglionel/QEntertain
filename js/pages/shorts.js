@@ -106,6 +106,7 @@ window.playShortInSlide = async (slug, btn, isManual = false) => {
 
     try {
         const res = await API.getPhimDetail(slug);
+        console.log('🔍 [Shorts Detail] FULL RESPONSE:', res);
         if (!res || !res.status) return;
 
         const data = res.movie;

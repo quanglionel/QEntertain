@@ -14,6 +14,7 @@ async function showDetail(slug) {
 
         if (isPhim) {
             const res = await API.getPhimDetail(slug);
+            console.log('🔍 [Phim Detail] FULL RESPONSE:', res);
             if (!res || (res.status === false)) {
                 throw new Error('API trả về lỗi hoặc không có dữ liệu');
             }
@@ -28,6 +29,7 @@ async function showDetail(slug) {
             }
         } else {
             const res = await API.getTruyenDetail(slug);
+            console.log('🔍 [Truyen Detail] FULL RESPONSE:', res);
             if (!res.data) throw new Error('Lỗi tải truyện');
             data = res.data.item;
             window.currentDetailData = data;
