@@ -32,11 +32,21 @@ function toggleBookmark(item, type) {
             slug: item.slug,
             name: item.name,
             thumb_url: item.thumb_url,
+            // Save category for recommendations
+            category: (window.currentDetailData && window.currentDetailData.slug === item.slug)
+                ? window.currentDetailData.category
+                : (item.category || []),
             time: Date.now()
         };
         list.unshift(newItem);
         QStorage.save(key, list);
         if (window.showToast) window.showToast('Đã thêm vào Tủ đồ', 'success');
+
+        // Trigger recommendation update if in Truyen mode
+        if (window.currentMode === 'truyen' && window.renderForYou) {
+            // We can't easily re-render just the slider here without page reload or complex logic
+            // But we can signal it. For now, next home load will update.
+        }
         return true;
     }
 }

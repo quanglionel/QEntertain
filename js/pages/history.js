@@ -10,7 +10,11 @@ function getHistory(type) {
 }
 
 function saveHistory(item) {
-    // Determine type: if it has episode_url -> phim, else truyen
+    // Add category for recommendations
+    if (!item.category && window.currentDetailData && window.currentDetailData.slug === item.slug) {
+        item.category = window.currentDetailData.category || [];
+    }
+
     const isPhim = !!item.episode_url;
     const type = isPhim ? 'phim' : 'truyen';
     const key = isPhim ? 'qhub-history-phim' : 'qhub-history-truyen';

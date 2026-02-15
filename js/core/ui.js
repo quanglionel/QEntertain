@@ -573,8 +573,7 @@ function renderSections() {
 
     // Render History (Continue Watching)
     if (window.getHistory) {
-        let history = getHistory(isPhim ? 'phim' : 'truyen');
-        // Filter out items without progress if needed, but usually history implies progress
+        let history = window.getHistory(isPhim ? 'phim' : 'truyen');
         if (history.length > 0) {
             const hSec = document.createElement('section');
             hSec.className = 'movie-section';
@@ -599,42 +598,16 @@ function renderSections() {
                             const res = await API.getPhimDetail(item.slug);
                             if (res && res.status && res.movie) {
                                 const movie = res.movie;
-                                // Check Category
-                                const isShort = movie.category && Array.isArray(movie.category) && movie.category.some(c => c.slug === 'short-drama' || c.slug === 'phim-ngan');
-
                                 // Set global context
                                 window.currentDetailData = movie;
                                 window.currentDetailData.episodes = res.episodes;
 
-                                if (isShort && window.renderShortsPage) {
-                                    // Fetch Shorts List to populate feed
-                                    const listRes = await API.getPhimByCategory('short-drama');
-                                    let shortItems = listRes?.data?.items || [];
-
-                                    // Ensure current movie is first
-                                    shortItems = shortItems.filter(i => i.slug !== item.slug);
-                                    shortItems.unshift(movie);
-
-                                    renderShortsPage(shortItems);
-
-                                    // Play History Episode
-                                    if (item.episode_url) {
-                                        playEp(item.episode_url, item.episode_name, item.slug, item.name, item.thumb_url);
-                                    } else {
-                                        // Play first episode if history url missing?
-                                        // Usually history has it.
-                                    }
-                                    return;
-                                }
-
-                                // Normal Play
                                 if (item.episode_url) {
                                     playEp(item.episode_url, item.episode_name, item.slug, item.name, item.thumb_url);
                                 } else {
                                     showDetail(item.slug);
                                 }
                             } else {
-                                // Fallback
                                 showDetail(item.slug);
                             }
                         } catch (e) {
@@ -678,6 +651,21 @@ function renderSections() {
         }
     }
 
+    // === "Dành cho bạn" Section (Truyện Only) ===
+    if (!isPhim) {
+        const forYouSec = document.createElement('section');
+        forYouSec.className = 'movie-section';
+        forYouSec.innerHTML = `
+            <div class="section-header">
+                <h2 class="section-title">✨ Dành cho bạn</h2>
+            </div>
+            <div class="movie-list" id="forYouList"></div>
+        `;
+        container.appendChild(forYouSec);
+        renderSkeleton('forYouList', 6);
+        loadForYouContent('forYouList');
+    }
+
     // Render Main Sections
     sections.forEach(section => {
         const sec = document.createElement('section');
@@ -715,6 +703,96 @@ window.scrollList = (listId, direction) => {
         list.scrollBy({ left: direction * list.clientWidth * 0.8, behavior: 'smooth' });
     }
 };
+
+/* === RECOMMENDATION ENGINE ("Dành cho bạn") === */
+async function loadForYouContent(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (currentMode !== 'truyen') {
+        container.closest('.movie-section').remove();
+        return;
+    }
+
+    try {
+        // 1. Gather User Preferences (Bookmarks + History)
+        const bookmarks = window.getBookmarks ? window.getBookmarks('truyen') : [];
+        const history = window.getHistory ? window.getHistory('truyen') : [];
+
+        const combined = [...bookmarks, ...history];
+        if (combined.length === 0) {
+            container.closest('.movie-section').remove();
+            return;
+        }
+
+        // 2. Analyze Genres
+        const genreCounts = {};
+        combined.forEach(item => {
+            if (item.category && Array.isArray(item.category)) {
+                item.category.forEach(cat => {
+                    // Normalize slug
+                    const slug = cat.slug || cat.id;
+                    if (slug) {
+                        genreCounts[slug] = (genreCounts[slug] || 0) + 1;
+                    }
+                });
+            }
+        });
+
+        // 3. Find Top Genres
+        const sortedGenres = Object.entries(genreCounts)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 2) // Top 2 genres
+            .map(([slug]) => slug);
+
+        if (sortedGenres.length === 0) {
+            // No genre info found (old data?), maybe pick random popular or hide
+            container.closest('.movie-section').remove();
+            return;
+        }
+
+        // 4. Fetch Recommendations
+        // We fetch page 1 of the top genre(s)
+        const promises = sortedGenres.map(slug => API.getTruyenByCategory(slug, 1));
+        const results = await Promise.all(promises);
+
+        let candidates = [];
+        results.forEach(res => {
+            if (res && res.data && res.data.items) {
+                candidates = [...candidates, ...res.data.items];
+            }
+        });
+
+        // 5. Filter & Shuffle
+        // Remove items user already bookmarked/read (optional, but requested "similar")
+        // Actually, seeing what you bookmarked is fine, but new stuff is better.
+        // Let's filter out exact matches by ID/Slug if we want "discovery".
+        // But the user just said "similar content".
+
+        // Deduplicate candidates
+        const uniqueCandidates = Array.from(new Map(candidates.map(item => [item._id || item.slug, item])).values());
+
+        // Shuffle for variety
+        uniqueCandidates.sort(() => Math.random() - 0.5);
+
+        // Limit
+        const finalItems = uniqueCandidates.slice(0, 15);
+
+        if (finalItems.length > 0) {
+            renderList(containerId, finalItems);
+
+            // Update Title with Genre Names?
+            // Need to fetch category list or use what we have. 
+            // Generic title "Dành cho bạn" is safe.
+        } else {
+            container.closest('.movie-section').remove();
+        }
+
+    } catch (e) {
+        console.error('Error loading For You:', e);
+        container.closest('.movie-section').remove();
+    }
+}
 
 /* === MAIN INIT === */
 async function renderAll() {
