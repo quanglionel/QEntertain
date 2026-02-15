@@ -104,6 +104,7 @@ function renderHistoryPage() {
                 <div class="movie-episode" style="background:var(--accent);bottom:0;left:0;right:0;text-align:center;border-radius:0;">
                     ${isTruyen ? 'Đọc tiếp' : 'Xem tiếp'} ${label}
                 </div>
+                <button class="delete-history-btn" onclick="deleteHistoryItem('${item.slug}', event)" style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;">✕</button>
             </div>
             <div class="movie-info">
                 <div class="movie-title">${item.name}</div>
@@ -114,6 +115,22 @@ function renderHistoryPage() {
         `;
         grid.appendChild(card);
     });
+}
+
+function deleteHistoryItem(slug, event) {
+    if (event) event.stopPropagation();
+
+    // Determine type from current mode
+    const isTruyen = (typeof currentMode !== 'undefined') ? (currentMode === 'truyen') : false;
+    const type = isTruyen ? 'truyen' : 'phim';
+    const key = isTruyen ? 'qhub-history-truyen' : 'qhub-history-phim';
+
+    let list = getHistory(type);
+    list = list.filter(h => h.slug !== slug);
+    QStorage.save(key, list);
+
+    // Re-render
+    renderHistoryPage();
 }
 
 function clearHistory() {
@@ -129,6 +146,7 @@ window.getHistory = getHistory;
 window.saveHistory = saveHistory;
 window.renderHistoryPage = renderHistoryPage;
 window.clearHistory = clearHistory;
+window.deleteHistoryItem = deleteHistoryItem;
 
 // ============================================
 // Watched Episodes / Chapters Tracking
