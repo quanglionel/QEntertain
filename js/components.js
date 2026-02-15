@@ -139,15 +139,25 @@ function renderHeader() {
                 <button onclick="toggleSidebar(false)" style="background:none;border:none;color:white;font-size:1.5rem;cursor:pointer;">✕</button>
             </div>
             <nav class="sidebar-nav">${navHTML}</nav>
-            <div class="sidebar-mode">
-                <h4 style="margin-bottom:10px;font-size:0.9rem;color:#888;">CHẾ ĐỘ</h4>
-                ${modeTabsHTML}
-            </div>
         </div>
     `;
     document.body.appendChild(sidebar);
 
     // 2. Header HTML
+    const isTruyen = currentMode === 'truyen';
+
+    // Segmented Control HTML
+    const modeSwitchHTML = `
+        <div class="mode-segmented-control">
+            <div class="mode-option ${!isTruyen ? 'active' : ''}" onclick="toggleMode('phim')">
+                <span>🎬</span> Phim
+            </div>
+            <div class="mode-option ${isTruyen ? 'active' : ''}" onclick="toggleMode('truyen')">
+                <span>📚</span> Truyện
+            </div>
+        </div>
+    `;
+
     header.innerHTML = `
         <div class="header-inner">
             <div class="header-left">
@@ -155,9 +165,13 @@ function renderHeader() {
                 <a href="#" class="logo" onclick="handleNav('home'); return false;">
                     <span class="logo-text">${config.label}</span>
                 </a>
+                <div class="header-mode-container" style="margin-left: 20px;">
+                    ${modeSwitchHTML}
+                </div>
             </div>
             <div class="header-right">
                 <div class="mobile-shortcuts">
+                    <button class="header-icon-btn" onclick="handleNav('history')" aria-label="Lịch sử">${ICONS.history}</button>
                     <button class="header-icon-btn" onclick="openSettings()" aria-label="Cài đặt">⚙️</button>
                     <button class="header-icon-btn" onclick="handleNav('bookmarks')" aria-label="Tủ đồ" style="color:#ff5555;">❤</button>
                 </div>
@@ -170,8 +184,12 @@ function renderHeader() {
     `;
 
     if (window.initSearchBox) window.initSearchBox();
-
 }
+
+// Keep toggleMode logic
+window.toggleMode = (targetMode) => {
+    if (targetMode !== currentMode) switchMode(targetMode);
+};
 
 window.handleNav = async (section, label) => {
     if (section === 'home') { renderAll(); return; }

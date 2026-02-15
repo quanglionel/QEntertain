@@ -72,6 +72,25 @@
 
     .search-box {
         padding-left: 10px;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    /* Expandable Search on Mobile */
+    .search-box:focus-within {
+        position: absolute;
+        width: auto;
+        left: 60px;
+        /* Leave space for Menu & Logo */
+        right: 12px;
+        z-index: 100;
+        background: var(--bg-card);
+        /* Hide shortcuts underneath */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        border-color: var(--accent);
+    }
+
+    .search-box:focus-within .search-input {
+        width: 100%;
     }
 
     /* Menu chuyển thành dropdown (nếu cần) - Hiện tại đã code trong JS */
@@ -156,27 +175,23 @@
 @media (max-width: 480px) {
 
     /* Chuyển sang hiện icon, ẩn chữ cho gọn */
-    .mode-tab {
+    .mode-option {
         padding: 6px;
     }
 
-    .mode-tab span {
+    .mode-option span {
         display: inline-block;
         /* Hiện lại icon */
         font-size: 1.2rem;
     }
 
-    /* Ẩn text của mode tab (label) */
-    .mode-tab {
+    /* Ẩn text của mode option (label) */
+    .mode-option {
         font-size: 0;
         /* Cách hack để ẩn text direct child node nhưng giữ icon trong span */
     }
 
-    /* Hoặc dùng cách an toàn hơn nếu cấu trúc HTML cho phép */
-    /* HTML: <button> <span>icon</span> text </button> */
-    /* font-size: 0 sẽ ẩn text node, nhưng cần reset font-size cho span */
-
-    .mode-switcher {
+    .mode-segmented-control {
         display: flex;
         /* Đảm bảo hiện */
         gap: 4px;

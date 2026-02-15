@@ -80,8 +80,8 @@
     background-clip: text;
 }
 
-/* === Nút chuyển đổi QPhim / QTruyện === */
-.mode-switcher {
+/* === Nút chuyển đổi QPhim / QTruyện (Radio Style) === */
+.mode-segmented-control {
     display: flex;
     background: var(--bg-input);
     border-radius: var(--radius-full);
@@ -89,7 +89,7 @@
     border: 1px solid var(--border);
 }
 
-.mode-tab {
+.mode-option {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -100,14 +100,16 @@
     color: var(--text-secondary);
     transition: all var(--transition);
     cursor: pointer;
+    user-select: none;
 }
 
-.mode-tab:hover {
+.mode-option:hover {
     color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 /* Tab đang được chọn */
-.mode-tab.active {
+.mode-option.active {
     background: var(--accent);
     color: #fff;
     box-shadow: 0 2px 10px var(--accent-glow);
