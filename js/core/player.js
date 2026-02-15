@@ -16,10 +16,10 @@ const Player = {
      * @param {string} backupUrl - URL dự phòng (nếu có)
      */
     initVideo(container, url, nextEpCallback, poster, backupUrl = null) {
-        console.log('🎬 Player init:', url);
-        this.destroy(); // Dọn dẹp cái cũ
+        console.log('🎬 ArtPlayer init = Backup Link:', url);
+        this.destroy(); // Dọn dẹp máy cũ
 
-        if (!container) return console.error('Player: Container not found');
+        if (!container) return;
         container.innerHTML = '';
 
         const videoWrapper = document.createElement('div');
@@ -29,7 +29,7 @@ const Player = {
         videoWrapper.style.background = '#000';
         container.appendChild(videoWrapper);
 
-        // Hàm hiển thị lỗi
+        // UI function to show error
         this.showError = (msg) => {
             videoWrapper.innerHTML = `
                 <div style="position:absolute;inset:0;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#fff;text-align:center;gap:15px;padding:20px;z-index:100;">
@@ -42,12 +42,7 @@ const Player = {
                 </div>
             `;
             const retryBtn = videoWrapper.querySelector('#retryBackup');
-            if (retryBtn) {
-                retryBtn.onclick = () => {
-                    console.log('🔄 Retrying with backup:', backupUrl);
-                    this.initVideo(container, backupUrl, nextEpCallback, poster, null);
-                };
-            }
+            if (retryBtn) retryBtn.onclick = () => this.initVideo(container, backupUrl, nextEpCallback, poster, null);
         };
 
         if (!url || url.trim() === '') {
@@ -55,7 +50,7 @@ const Player = {
             return this.showError('Link phim bị lỗi hoặc rỗng.');
         }
 
-        // --- XỬ LÝ M3U8 (Dùng ArtPlayer) ---
+        // --- XỬ LÝ M3U8 ---
         if (url.includes('.m3u8')) {
             console.log('🎥 Mode: ArtPlayer (M3U8)');
             const saveKey = `qhub-playback-${url}`;
@@ -84,12 +79,9 @@ const Player = {
                     lock: true,
                     fastForward: true,
                     theme: '#e50914',
-                    moreVideoAttr: {
-                        crossOrigin: 'anonymous',
-                    },
                     customType: {
                         m3u8: (video, url, art) => {
-                            if (Hls.isSupported()) {
+                            if (window.Hls && Hls.isSupported()) {
                                 if (this.hls) this.hls.destroy();
                                 const hls = new Hls();
                                 hls.loadSource(url);
@@ -117,7 +109,6 @@ const Player = {
 
                                 hls.on(Hls.Events.ERROR, (event, data) => {
                                     if (data.fatal && backupUrl) {
-                                        console.warn('HLS Fatal Error, switching to backup...');
                                         this.destroy();
                                         this.initVideo(container, backupUrl, nextEpCallback, poster, null);
                                     }
@@ -159,26 +150,21 @@ const Player = {
 
                 this.art.on('video:error', () => {
                     if (backupUrl) {
-                        console.warn('Video Error, switching to backup...');
                         this.destroy();
                         this.initVideo(container, backupUrl, nextEpCallback, poster, null);
                     }
                 });
 
             } catch (e) {
-                console.error('ArtPlayer Init UI Error:', e);
-                this.showError('Không thể khởi tạo trình phát Video.');
+                console.error('ArtPlayer Init Error:', e);
+                this.showError('Lỗi khởi tạo trình phát video.');
             }
 
         } else {
             // --- XỬ LÝ EMBED / IFRAME ---
             console.log('🔗 Mode: Embed (Iframe)');
             videoWrapper.innerHTML = `
-                <iframe src="${url}" 
-                    style="width:100%;height:100%;border:none;background:#000;" 
-                    allowfullscreen 
-                    allow="autoplay; encrypted-media">
-                </iframe>
+                <iframe src="${url}" style="width:100%;height:100%;border:none;background:#000;" allowfullscreen allow="autoplay; encrypted-media"></iframe>
             `;
 
             const toastId = 'embed-warning-toast';
@@ -202,8 +188,7 @@ const Player = {
         console.log('📖 Reader init:', chapterName);
         this.destroy();
         this._autoNextTriggered = false;
-        if (!container) return;
-        container.innerHTML = '';
+        if (container) container.innerHTML = '';
 
         let progressBar = document.querySelector('.reader-progress');
         if (!progressBar) {
@@ -352,7 +337,6 @@ const Player = {
     },
 
     destroy() {
-        console.log('🧹 Destroying Player/Reader...');
         if (this.art) {
             this.art.destroy(true);
             this.art = null;
@@ -361,12 +345,10 @@ const Player = {
             this.hls.destroy();
             this.hls = null;
         }
-
         ['mediaContainer', 'watchPlayerContainer', 'readerContainer'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.innerHTML = '';
         });
-
         if (this._readerCleanup) {
             this._readerCleanup();
             this._readerCleanup = null;
