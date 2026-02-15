@@ -86,16 +86,17 @@ async function loadMoreContent() {
 /* === HEADER & NAV === */
 /* === HEADER & NAV (SIDEBAR MODE) === */
 const SIDEBAR_CSS = `
-.sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; }
+.sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; }
 .sidebar-overlay.active { opacity: 1; visibility: visible; }
-.sidebar-content { position: absolute; top: 0; left: 0; bottom: 0; width: 280px; background: var(--bg-card); transform: translateX(-100%); transition: 0.3s; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
+.sidebar-content { position: absolute; top: 0; left: 0; bottom: 0; width: 300px; background: var(--bg-card); transform: translateX(-100%); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 20px; display: flex; flex-direction: column; overflow-y: auto; box-shadow: 5px 0 15px rgba(0,0,0,0.5); border-right: 1px solid var(--border); }
 .sidebar-overlay.active .sidebar-content { transform: translateX(0); }
-.sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-.sidebar-nav a { display: block; padding: 12px 15px; color: var(--text-secondary); text-decoration: none; border-radius: 8px; margin-bottom: 5px; font-weight: 500; transition: 0.2s; }
-.sidebar-nav a:hover, .sidebar-nav a.active { background: var(--bg-hover); color: var(--accent); }
+.sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+.sidebar-nav a { display: block; padding: 12px 15px; color: var(--text-secondary); text-decoration: none; border-radius: 8px; margin-bottom: 5px; font-weight: 500; transition: 0.2s; font-size: 1rem; }
+.sidebar-nav a:hover, .sidebar-nav a.active { background: var(--bg-hover); color: var(--accent); transform: translateX(5px); }
 .sidebar-mode { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border); }
-.sidebar-mode button { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 10px; justify-content: center; }
-.sidebar-mode button.active { background: var(--accent); color: white; border-color: var(--accent); }
+.sidebar-mode button { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 10px; justify-content: center; font-weight: 600; transition: 0.2s; }
+.sidebar-mode button:hover { border-color: var(--accent); color: var(--accent); }
+.sidebar-mode button.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 10px var(--accent-glow); }
 `;
 const sbStyle = document.createElement('style');
 sbStyle.textContent = SIDEBAR_CSS;
@@ -176,7 +177,7 @@ function renderHeader() {
     header.innerHTML = `
         <div class="header-inner">
             <div class="header-left">
-                <button class="header-icon-btn mobile-only" onclick="toggleSidebar(true)" style="margin-right:10px;font-size:1.4rem; display:none;">☰</button>
+                <button class="header-icon-btn" onclick="toggleSidebar(true)" style="margin-right:10px;font-size:1.4rem;">☰</button>
                 <a href="#" class="logo" onclick="handleNav('home'); return false;">
                     <span class="logo-text">${config.label}</span>
                 </a>
@@ -184,11 +185,6 @@ function renderHeader() {
                     ${modeSwitchHTML}
                 </div>
             </div>
-
-            <!-- Desktop Nav -->
-            <nav class="desktop-nav desktop-only">
-                ${navHTML}
-            </nav>
 
             <div class="header-right">
                 <div class="search-box">
