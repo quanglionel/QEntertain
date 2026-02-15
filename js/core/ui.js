@@ -273,14 +273,40 @@ window.toggleMode = (targetMode) => {
 };
 
 window.handleNav = async (section, label) => {
+    // 1. Reset về Trang Chủ
     if (section === 'home') {
-        document.title = 'QPhim - Trang chủ';
+        document.title = 'QPhim - Xem Phim & Đọc Truyện';
+
+        // Ẩn các trang chi tiết/xem phim
+        document.getElementById('detailPage')?.classList.add('hidden');
+        document.getElementById('watchPage')?.classList.add('hidden');
+        document.getElementById('readerPage')?.classList.add('hidden');
+
+        // Hiển thị lại Hero Slider
+        const hero = document.getElementById('hero');
+        if (hero) hero.style.display = 'block';
+
+        // Xóa bộ lọc nếu có
+        const filterSec = document.getElementById('filterSection');
+        if (filterSec) {
+            filterSec.remove();
+            // Render lại nội dung chính nếu bị xóa
+            renderAll();
+            return;
+        }
+
         renderAll();
         return;
     }
 
+    // 2. Logic điều hướng khác
     const hero = document.getElementById('hero');
     if (hero) hero.style.display = 'none';
+
+    // Ẩn trang chi tiết khi chuyển sang mục khác (Thể loại, Tìm kiếm...)
+    document.getElementById('detailPage')?.classList.add('hidden');
+    document.getElementById('watchPage')?.classList.add('hidden');
+    document.getElementById('readerPage')?.classList.add('hidden');
 
     const main = document.getElementById('movieSections');
     if (!main) return;
