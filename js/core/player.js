@@ -68,10 +68,34 @@ const Player = {
 
                 // ② HLS Setup
                 this.hls = new Hls({
-                    enableWorker: false,
+                    enableWorker: false, // Disable web worker to avoid CORS issues sometimes
                     maxBufferLength: 30,
-                    startLevel: -1
+                    startLevel: -1,
+                    fragLoadingMaxRetry: 3, // Retry frag 3 times then error
+                    manifestLoadingMaxRetry: 2 // Retry manifest 2 times
                 });
+
+                let fragLoadErrorCount = 0;
+                let loadTimeout = setTimeout(() => {
+                    if (video.paused && video.currentTime < 0.1) {
+                        console.warn('Video load timeout (20s)');
+                        handleFatalError();
+                    }
+                }, 20000); // 20s Timeout
+
+                const handleFatalError = () => {
+                    clearTimeout(loadTimeout);
+                    this.hls.destroy();
+                    if (backupUrl && url !== backupUrl) {
+                        console.log('Switching to Backup URL (Timeout/Fatal)');
+                        this.initVideo(container, backupUrl, nextEpCallback, poster, null);
+                    } else {
+                        this.showError('Kết nối tới server quá chậm hoặc bị lỗi.<br>Vui lòng thử tập khác hoặc server khác.');
+                    }
+                };
+
+                // Clear timeout when playing
+                video.addEventListener('playing', () => clearTimeout(loadTimeout), { once: true });
 
                 // Error Handling
                 this.hls.on(Hls.Events.ERROR, (event, data) => {
@@ -87,14 +111,18 @@ const Player = {
                                 this.hls.recoverMediaError();
                                 break;
                             default:
-                                this.hls.destroy();
-                                if (backupUrl && url !== backupUrl) {
-                                    console.log('Switching to Backup URL');
-                                    this.initVideo(container, backupUrl, nextEpCallback, poster, null);
-                                } else {
-                                    this.showError('Không thể phát video này.<br>Vui lòng thử tập khác hoặc server khác.');
-                                }
+                                handleFatalError();
                                 break;
+                        }
+                    } else {
+                        // Non-fatal errors check
+                        if (data.details === Hls.ErrorDetails.FRAG_LOAD_ERROR || data.details === Hls.ErrorDetails.FRAG_LOAD_TIMEOUT) {
+                            fragLoadErrorCount++;
+                            console.warn(`Frag Load Error: ${fragLoadErrorCount}/3`);
+                            if (fragLoadErrorCount >= 3) {
+                                console.error('Too many frag load errors. Treating as fatal.');
+                                handleFatalError();
+                            }
                         }
                     }
                 });
