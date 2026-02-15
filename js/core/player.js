@@ -76,12 +76,14 @@ const Player = {
                 });
 
                 let fragLoadErrorCount = 0;
+                let levelLoadErrorCount = 0; // Track level loading errors
+
                 let loadTimeout = setTimeout(() => {
                     if (video.paused && video.currentTime < 0.1) {
-                        console.warn('Video load timeout (20s)');
+                        console.warn('Video load timeout (15s)');
                         handleFatalError();
                     }
-                }, 20000); // 20s Timeout
+                }, 15000); // Reduce to 15s
 
                 const handleFatalError = () => {
                     clearTimeout(loadTimeout);
@@ -103,8 +105,8 @@ const Player = {
                         console.warn(`HLS Fatal: ${data.type} - ${data.details}`);
                         switch (data.type) {
                             case Hls.ErrorTypes.NETWORK_ERROR:
-                                console.log('Network error, recovering...');
-                                this.hls.startLoad();
+                                console.log('Fatal Network Error, trying backup...');
+                                handleFatalError(); // Switch immediately on fatal network error
                                 break;
                             case Hls.ErrorTypes.MEDIA_ERROR:
                                 console.log('Media error, recovering...');
@@ -115,14 +117,16 @@ const Player = {
                                 break;
                         }
                     } else {
-                        // Non-fatal errors check
-                        if (data.details === Hls.ErrorDetails.FRAG_LOAD_ERROR || data.details === Hls.ErrorDetails.FRAG_LOAD_TIMEOUT) {
+                        // Non-fatal checking
+                        const details = data.details;
+                        if (details === Hls.ErrorDetails.FRAG_LOAD_ERROR || details === Hls.ErrorDetails.FRAG_LOAD_TIMEOUT) {
                             fragLoadErrorCount++;
-                            console.warn(`Frag Load Error: ${fragLoadErrorCount}/3`);
-                            if (fragLoadErrorCount >= 3) {
-                                console.error('Too many frag load errors. Treating as fatal.');
-                                handleFatalError();
-                            }
+                            if (fragLoadErrorCount >= 3) handleFatalError();
+                        }
+                        else if (details === Hls.ErrorDetails.LEVEL_LOAD_ERROR || details === Hls.ErrorDetails.LEVEL_LOAD_TIMEOUT || details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR || details === Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT) {
+                            levelLoadErrorCount++;
+                            console.warn(`Level/Manifest Load Error: ${levelLoadErrorCount}/2`);
+                            if (levelLoadErrorCount >= 2) handleFatalError();
                         }
                     }
                 });
