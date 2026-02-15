@@ -119,14 +119,14 @@ window.playShortInSlide = async (slug, btn, isManual = false) => {
         }
 
         if (firstEp) {
-            let link = firstEp.link_m3u8 || firstEp.link_embed;
+            let link = firstEp.link_embed || firstEp.link_m3u8;
 
             // ... (keep autoplay check if needed, though for M3U8 it's native)
             if (link.includes('embed') || link.includes('share')) {
                 link += (link.includes('?') ? '&' : '?') + 'autoplay=1';
             }
 
-            const backupUrl = (firstEp.link_m3u8 && firstEp.link_embed && firstEp.link_m3u8 !== firstEp.link_embed) ? firstEp.link_embed : null;
+            const backupUrl = (firstEp.link_m3u8 && firstEp.link_embed && firstEp.link_m3u8 !== firstEp.link_embed) ? firstEp.link_m3u8 : null;
             const thumb = API.getPhimImageUrl(data.thumb_url);
 
             // Show player container
