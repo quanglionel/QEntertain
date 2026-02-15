@@ -106,7 +106,6 @@ window.playShortInSlide = async (slug, btn, isManual = false) => {
 
     try {
         const res = await API.getPhimDetail(slug);
-        console.log('🔍 [Shorts Detail] FULL RESPONSE:', res);
         if (!res || !res.status) return;
 
         const data = res.movie;
@@ -129,8 +128,6 @@ window.playShortInSlide = async (slug, btn, isManual = false) => {
 
             const backupUrl = (firstEp.link_m3u8 && firstEp.link_embed && firstEp.link_m3u8 !== firstEp.link_embed) ? firstEp.link_m3u8 : null;
             const thumb = API.getPhimImageUrl(data.thumb_url);
-
-            console.log(`🎬 Shorts Playing: [${data.name}]`, { link, backupUrl });
 
             // Show player container
             playerContainer.classList.add('active');

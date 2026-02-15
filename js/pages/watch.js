@@ -101,9 +101,7 @@ window.playEp = (url, epName, slug, name, thumb, backupUrl = null) => {
 
     // 3. Init Player
     const container = document.getElementById('watchPlayerContainer');
-    console.log(`🎬 PLAYING: [${name}] Ep [${epName}]`);
-    console.log(`🔗 URL: ${url}`);
-    console.log(`🔗 Backup: ${backupUrl}`);
+    if (backupUrl) console.log('🛡️ Backup Link:', backupUrl);
 
     // Auto Next Callback
     const nextEpCallback = () => {

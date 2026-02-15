@@ -14,7 +14,6 @@ async function showDetail(slug) {
 
         if (isPhim) {
             const res = await API.getPhimDetail(slug);
-            console.log('🔍 [Phim Detail] FULL RESPONSE:', res);
             if (!res || (res.status === false)) {
                 throw new Error('API trả về lỗi hoặc không có dữ liệu');
             }
@@ -23,14 +22,12 @@ async function showDetail(slug) {
             window.currentDetailData = data;
             data.episodes = res.episodes || res.data?.episodes || data.episodes || [];
             if (data.episodes.length > 0) {
-                console.log('📦 Episodes Array:', data.episodes);
                 data.episodes.forEach(svr => {
                     if (!svr.server_data && svr.items) svr.server_data = svr.items;
                 });
             }
         } else {
             const res = await API.getTruyenDetail(slug);
-            console.log('🔍 [Truyen Detail] FULL RESPONSE:', res);
             if (!res.data) throw new Error('Lỗi tải truyện');
             data = res.data.item;
             window.currentDetailData = data;
@@ -197,7 +194,6 @@ function renderListButtons(item, isPhim) {
                         const safeThumb = item.thumb_url.replace(/'/g, "\\'");
                         const epLink = ep.link_embed || ep.link_m3u8;
                         const epBackup = (ep.link_m3u8 && ep.link_embed && ep.link_m3u8 !== ep.link_embed) ? ep.link_m3u8 : null;
-                        console.log(`🎯 Episode Clicked: ${ep.name}`, { embed: ep.link_embed, m3u8: ep.link_m3u8 });
                         playEp(epLink, ep.name, item.slug, safeName, safeThumb, epBackup);
                     }
                 })));
