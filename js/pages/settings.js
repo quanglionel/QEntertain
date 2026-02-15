@@ -83,12 +83,15 @@ function createSettingsModal() {
                         <input type="file" id="importFile" style="display:none" accept=".json" onchange="importAppData(this)">
                     </div>
 
-                    <button class="action-btn" onclick="clearAppData()" style="width:100%; background: #ff4757;">🗑️ Xóa bộ nhớ đệm (Reset App)</button>
-                    <p style="font-size: 0.8rem; color: #888; margin-top: 5px; text-align: center;">Dùng khi app bị lỗi hoặc không tải được.</p>
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                         <button class="action-btn" onclick="cleanCache()" style="flex:1; background: #3498db;">🧹 Dọn dẹp Cache</button>
+                         <button class="action-btn" onclick="clearAppData()" style="flex:1; background: #ff4757;">🗑️ Reset App</button>
+                    </div>
+                    <p style="font-size: 0.8rem; color: #888; margin-top: 5px; text-align: center;">Dọn dẹp Cache giúp app nhẹ hơn mà không mất dữ liệu.</p>
                 </div>
                 
                 <div style="margin-top: 20px; text-align: center; color: #666; font-size: 0.8rem;">
-                    QPhim v2.2 - Build 2026
+                    QPhim v2.3 - Clean & Fast
                 </div>
             </div>
         </div>
@@ -126,6 +129,21 @@ window.toggleSetting = (key, value) => {
     const s = getSettings();
     s[key] = value;
     saveSettings(s);
+};
+
+window.cleanCache = async () => {
+    if ('caches' in window) {
+        try {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(key => caches.delete(key)));
+            alert('Đã dọn dẹp Cache thành công! App sẽ tải lại để cập nhật.');
+            window.location.reload();
+        } catch (e) {
+            alert('Lỗi xóa cache: ' + e);
+        }
+    } else {
+        alert('Trình duyệt này không hỗ trợ Cache API.');
+    }
 };
 
 window.clearAppData = () => {
