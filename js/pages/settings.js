@@ -1,6 +1,6 @@
 /* ============================================
    QPhim & QTruyện - Settings Logic
-   Quản lý cấu hình, giao diện cài đặt
+   Quản lý cấu hình, giao diện cài đặt, Backup/Restore
    ============================================ */
 
 const DEFAULT_SETTINGS = {
@@ -22,10 +22,7 @@ function saveSettings(newSettings) {
 }
 
 function applySettings(settings) {
-    // Apply logic here inside app components (e.g. update global variables)
     window.APP_SETTINGS = settings;
-
-    // Example: Toggle smooth scroll on html
     document.documentElement.style.scrollBehavior = settings.smoothScroll ? 'smooth' : 'auto';
 }
 
@@ -57,6 +54,8 @@ input:checked + .slider { background-color: var(--accent); }
 input:focus + .slider { box-shadow: 0 0 1px var(--accent); }
 input:checked + .slider:before { transform: translate(20px, -50%); }
 .setting-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.action-btn { background: var(--bg-hover); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: 0.2s; }
+.action-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 `;
 const style = document.createElement('style');
 style.textContent = SETTINGS_CSS;
@@ -77,13 +76,19 @@ function createSettingsModal() {
                 <div id="settingsList" class="settings-list"></div>
 
                 <div style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px;">
-                    <h3 style="margin-bottom: 10px; font-size: 1rem;">Dữ liệu</h3>
+                    <h3 style="margin-bottom: 10px; font-size: 1rem;">Dữ liệu & Sao lưu</h3>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <button class="action-btn" onclick="exportAppData()" style="background: var(--accent); color: white;">⬇️ Sao lưu (.json)</button>
+                        <button class="action-btn" onclick="document.getElementById('importFile').click()" style="background: #2ecc71; color: white;">⬆️ Khôi phục</button>
+                        <input type="file" id="importFile" style="display:none" accept=".json" onchange="importAppData(this)">
+                    </div>
+
                     <button class="action-btn" onclick="clearAppData()" style="width:100%; background: #ff4757;">🗑️ Xóa bộ nhớ đệm (Reset App)</button>
                     <p style="font-size: 0.8rem; color: #888; margin-top: 5px; text-align: center;">Dùng khi app bị lỗi hoặc không tải được.</p>
                 </div>
                 
                 <div style="margin-top: 20px; text-align: center; color: #666; font-size: 0.8rem;">
-                    QPhim v2.1 - Build 2026
+                    QPhim v2.2 - Build 2026
                 </div>
             </div>
         </div>
@@ -104,7 +109,7 @@ function renderSettingsContent() {
     ];
 
     container.innerHTML = items.map(item => `
-        <div class="setting-item" style="display:flex; justify-content:space-between; align-items:center; padding: 15px 0; border-bottom: 1px solid var(--border);">
+        <div class="setting-item">
             <div style="display:flex; align-items:center; gap: 10px;">
                 <span style="font-size: 1.2rem;">${item.icon}</span>
                 <span>${item.label}</span>
@@ -124,18 +129,83 @@ window.toggleSetting = (key, value) => {
 };
 
 window.clearAppData = () => {
-    if (confirm('Bạn có chắc muốn xóa toàn bộ dữ liệu (Lịch sử, Tủ đồ, Cài đặt)?')) {
+    if (confirm('NGUY HIỂM: Bạn có chắc muốn xóa toàn bộ dữ liệu?\n- Lịch sử xem/đọc sẽ mất vĩnh viễn.\n- Tủ đồ sẽ bị xóa.')) {
         localStorage.clear();
-        // Clear Cache Storage (Service Workers)
         if ('caches' in window) {
-            caches.keys().then(names => {
-                names.forEach(name => caches.delete(name));
-            });
+            caches.keys().then(names => names.forEach(name => caches.delete(name)));
         }
         alert('Đã xóa dữ liệu! Ứng dụng sẽ tải lại.');
         window.location.reload();
     }
 };
 
+// === Backup & Restore Functions ===
+
+window.exportAppData = () => {
+    const data = {};
+    // Collect all qhub keys
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('qhub-')) {
+            try {
+                data[key] = JSON.parse(localStorage.getItem(key));
+            } catch (e) {
+                data[key] = localStorage.getItem(key);
+            }
+        }
+    }
+
+    // Add metadata
+    const exportObj = {
+        version: '2.0',
+        timestamp: new Date().toISOString(),
+        data: data
+    };
+
+    // Download file
+    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `qphim-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+};
+
+window.importAppData = (input) => {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const json = JSON.parse(e.target.result);
+            if (!json.data) throw new Error('File không hợp lệ');
+
+            // Confirm restore
+            if (confirm(`Tìm thấy bản sao lưu ngày ${new Date(json.timestamp).toLocaleString()}.\nBạn có muốn khôi phục không? (Dữ liệu hiện tại sẽ bị ghi đè)`)) {
+
+                // Restore logic
+                Object.keys(json.data).forEach(key => {
+                    const val = json.data[key];
+                    localStorage.setItem(key, typeof val === 'object' ? JSON.stringify(val) : val);
+                });
+
+                alert('Khôi phục thành công! Đang tải lại trang...');
+                window.location.reload();
+            }
+        } catch (err) {
+            alert('Lỗi: File restore bị hỏng hoặc không đúng định dạng!');
+            console.error(err);
+        }
+    };
+    reader.readAsText(file);
+    // Reset input
+    input.value = '';
+};
+
 // Expose
 window.openSettings = openSettings;
+window.closeSettings = closeSettings;
