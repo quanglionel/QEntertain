@@ -58,3 +58,6 @@ function initNavLinks() {
         });
     });
 }
+window.initHeaderScroll = initHeaderScroll;
+window.initMobileMenu = initMobileMenu;
+window.initNavLinks = initNavLinks;

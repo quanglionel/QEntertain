@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qphim-v7';
+const CACHE_NAME = 'qphim-v8';
 const STATIC_ASSETS = [
     '/',
     '/index.html',

@@ -30,3 +30,6 @@ function initThemeToggle() {
         localStorage.setItem('qphim-theme', newTheme);
     });
 }
+
+// Expose to window
+window.initThemeToggle = initThemeToggle;

@@ -109,13 +109,5 @@
             "protocol": "web+qphim",
             "url": "/?url=%s"
         }
-    ],
-    "scope_extensions": [
-        {
-            "origin": "*.onrender.com"
-        },
-        {
-            "origin": "*.pages.dev"
-        }
     ]
 }
