@@ -367,8 +367,22 @@ window.handleNav = async (section, label) => {
         // Shorts Logic
         if (section === 'shorts') {
             if (currentMode === 'phim') {
-                section = 'tv-shows'; // Revert to TV Shows (Fallback)
-                label = 'Shorts / TV Shows';
+                try {
+                    // 1. Thử lấy danh mục 'phim-ngan'
+                    label = 'Short Drama';
+                    res = await API.getPhimByCategory('phim-ngan');
+
+                    // 2. Nếu không có kết quả, fallback sang 'tv-shows'
+                    if (!res || !res.data || !res.data.items || res.data.items.length === 0) {
+                        console.warn('Category phim-ngan empty, fallback to tv-shows');
+                        res = await API.getPhimList('tv-shows');
+                        label = 'TV Shows / Shorts';
+                    }
+                } catch (e) {
+                    // Fallback error
+                    res = await API.getPhimList('tv-shows');
+                    label = 'TV Shows';
+                }
             } else {
                 main.innerHTML = `
                 <div style="text-align:center;padding:100px 20px;">
