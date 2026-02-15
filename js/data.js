@@ -29,6 +29,7 @@ const APP_MODES = {
             { label: "Anime", section: "hoat-hinh", active: false },
             { label: "Thể loại", section: "genres", active: false },
             { label: "Lịch sử", section: "history", active: false },
+            { label: "Tủ đồ", section: "bookmarks", active: false },
         ],
     },
     truyen: {
@@ -43,6 +44,7 @@ const APP_MODES = {
             { label: "Manhua", section: "manhua", active: false },
             { label: "Thể loại", section: "genres", active: false },
             { label: "Lịch sử", section: "history", active: false },
+            { label: "Tủ đồ", section: "bookmarks", active: false },
         ],
     }
 };

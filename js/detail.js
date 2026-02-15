@@ -111,6 +111,9 @@ function renderDetailContent(item, isPhim) {
     const quality = item.quality || '';
     const lang = item.lang || '';
 
+    const type = isPhim ? 'phim' : 'truyen';
+    const isFav = window.isBookmarked ? window.isBookmarked(item.slug, type) : false;
+
     content.innerHTML = `
         <div class="detail-bg" style="background-image: url('${bgUrl}')"></div>
         <div class="detail-header">
@@ -134,7 +137,12 @@ function renderDetailContent(item, isPhim) {
                     ${item.actor && item.actor.length > 0 ? `<p><strong>Diễn viên:</strong> ${item.actor.join(', ')}</p>` : ''}
                 </div>
 
-                <div class="detail-actions">${primaryBtn}</div>
+                <div class="detail-actions">
+                    ${primaryBtn}
+                    <button class="btn-large btn-bookmark ${isFav ? 'active' : ''}" id="detailBookmarkBtn" style="background:#444;margin-left:10px;">
+                        ${isFav ? '❤️ Đã lưu' : '♡ Yêu thích'}
+                    </button>
+                </div>
 
                 <div class="detail-desc">
                     <strong>Nội dung:</strong><br />
@@ -148,6 +156,19 @@ function renderDetailContent(item, isPhim) {
             </div>
         </div>
     `;
+
+    // Bind Event Bookmark
+    const bmBtn = document.getElementById('detailBookmarkBtn');
+    if (bmBtn && window.toggleBookmark) {
+        bmBtn.onclick = () => {
+            const newState = window.toggleBookmark(item, type);
+            bmBtn.classList.toggle('active', newState);
+            bmBtn.innerHTML = newState ? '❤️ Đã lưu' : '♡ Yêu thích';
+            bmBtn.style.background = newState ? 'var(--accent)' : '#444';
+        };
+        // Init state style
+        if (isFav) bmBtn.style.background = 'var(--accent)';
+    }
 
     renderListButtons(item, isPhim);
 }

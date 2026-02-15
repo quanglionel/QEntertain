@@ -114,6 +114,42 @@ const Player = {
             // Note: Custom embeds might not work perfectly with Plyr UI overlays.
         }
 
+        // Resume Playback Logic (Only for Native Video)
+        if (typeof video !== 'undefined' && video) {
+            const saveKey = `qhub-playback-${url}`;
+            const savedTime = parseFloat(localStorage.getItem(saveKey) || '0');
+
+            if (savedTime > 10) {
+                video.addEventListener('loadedmetadata', () => {
+                    video.currentTime = savedTime;
+
+                    const toast = document.createElement('div');
+                    // Format Time: HH:MM:SS
+                    const date = new Date(0);
+                    date.setSeconds(savedTime);
+                    const timeString = date.toISOString().substr(11, 8);
+
+                    toast.textContent = `▶ Tiếp tục xem từ ${timeString}`;
+                    toast.style.cssText = `
+                        position: absolute; top: 20px; left: 20px; z-index: 99;
+                        background: rgba(0,0,0,0.7); color: #fff; padding: 5px 10px;
+                        border-radius: 4px; pointer-events: none; opacity: 0; transition: opacity 0.5s;
+                    `;
+                    videoWrapper.appendChild(toast);
+                    setTimeout(() => toast.style.opacity = 1, 100);
+                    setTimeout(() => toast.remove(), 4000);
+                }, { once: true });
+            }
+
+            // Save progress every 5s
+            this._saveInterval = setInterval(() => {
+                // Check plyr instance
+                if (this.plyr && !this.plyr.paused) {
+                    localStorage.setItem(saveKey, this.plyr.currentTime);
+                }
+            }, 5000);
+        }
+
         // Cuộn xuống player
         videoWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
     },

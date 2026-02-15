@@ -43,6 +43,7 @@ function renderHeader() {
                 <div class="mobile-shortcuts">
                     <button class="header-icon-btn" onclick="handleNav('genres')" aria-label="Thể loại">${ICONS.category}</button>
                     <button class="header-icon-btn" onclick="handleNav('history')" aria-label="Lịch sử">${ICONS.history}</button>
+                    <button class="header-icon-btn" onclick="handleNav('bookmarks')" aria-label="Tủ đồ" style="color:#ff5555;">❤</button>
                 </div>
                 <div class="search-box">
                     <input type="text" class="search-input" placeholder="Tìm kiếm phim, truyện...">
@@ -91,6 +92,12 @@ window.handleNav = async (section, label) => {
         if (section === 'history') {
             if (window.renderHistoryPage) renderHistoryPage(); // From history.js
             else main.innerHTML = '<p>History module missing.</p>';
+            return;
+        }
+
+        if (section === 'bookmarks') {
+            if (window.renderBookmarkPage) renderBookmarkPage();
+            else main.innerHTML = '<p>Bookmarks module missing.</p>';
             return;
         }
 
