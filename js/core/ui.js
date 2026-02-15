@@ -370,13 +370,13 @@ window.handleNav = async (section, label) => {
         if (section === 'shorts') {
             if (currentMode === 'phim') {
                 try {
-                    // 1. Thử lấy danh mục 'phim-ngan'
+                    // 1. Thử lấy danh mục 'short-drama'
                     label = 'Short Drama';
-                    res = await API.getPhimByCategory('phim-ngan');
+                    res = await API.getPhimByCategory('short-drama');
 
                     // 2. Nếu không có kết quả, fallback sang 'tv-shows'
                     if (!res || !res.data || !res.data.items || res.data.items.length === 0) {
-                        console.warn('Category phim-ngan empty, fallback to tv-shows');
+                        console.warn('Category short-drama empty, fallback to tv-shows');
                         res = await API.getPhimList('tv-shows');
                         label = 'TV Shows / Shorts';
                     }
