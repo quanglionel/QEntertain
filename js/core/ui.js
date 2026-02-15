@@ -189,12 +189,12 @@ function renderHeader() {
                 <a href="#" class="logo" onclick="handleNav('home'); return false;">
                     <span class="logo-text">${config.label}</span>
                 </a>
-                <div class="header-mode-container" style="margin-left: 20px;">
-                    ${modeSwitchHTML}
-                </div>
             </div>
 
             <div class="header-right">
+                <div class="header-mode-container desktop-only" style="margin-right: 15px;">
+                    ${modeSwitchHTML}
+                </div>
                 <div class="search-box">
                     <input type="text" class="search-input" placeholder="Tìm kiếm...">
                     <button class="search-toggle">🔍</button>
