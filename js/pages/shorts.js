@@ -68,16 +68,47 @@ window.renderShortsPage = (items) => {
     container.addEventListener('scroll', handleShortsScroll);
 };
 
-// Play Logic: Go to Watch Page
-window.playShort = (slug) => {
-    // Use existing detailed page logic to fetch episodes then play
-    showDetail(slug).then(() => {
-        // Auto-click first episode?
-        // This requires detail data to be loaded.
-        // For now, showDetail opens the modal. User can click Play there.
-        // To be more "TikTok", we should auto-enter watch page.
-        // But let's stick to detail for safety first.
-    });
+// Play Logic: Go to Watch Page directly (Auto Next supported)
+window.playShort = async (slug) => {
+    try {
+        // 1. Fetch Detail Data first
+        const res = await API.getPhimDetail(slug);
+        if (!res || !res.status) {
+            console.error('Fetch detail failed');
+            return;
+        }
+
+        const data = res.movie;
+        if (!data) return;
+
+        // 2. Set global context for Watch Page to use
+        window.currentDetailData = data;
+        window.currentDetailData.episodes = res.episodes;
+
+        // 3. Get First Episode
+        let firstEp = null;
+        if (res.episodes && res.episodes.length > 0) {
+            const sv = res.episodes[0];
+            const items = sv.server_data || sv.items;
+            if (items && items.length > 0) {
+                firstEp = items[0];
+            }
+        }
+
+        if (firstEp) {
+            const link = firstEp.link_m3u8 || firstEp.link_embed;
+            // Use API helper to get full image url
+            const thumb = API.getPhimImageUrl(data.thumb_url);
+
+            // 4. Call PlayEp (Handles UI switching and Player init)
+            playEp(link, firstEp.name, slug, data.name, thumb);
+        } else {
+            alert('Phim đang cập nhật, vui lòng thử lại sau!');
+        }
+
+    } catch (e) {
+        console.error('Play Short Error:', e);
+    }
 };
 
 window.likeShort = (btn) => {
