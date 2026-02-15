@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qphim-v27';
+const CACHE_NAME = 'qphim-v28';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -71,24 +71,37 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // API requests: always network (don't cache)
+    // 1. CHỈ CACHE CÁC FILE TĨNH (HTML, CSS, JS, JSON THIẾT YẾU)
+    // KHÔNG CACHE: Ảnh (posters, comic), Video (.ts, .m3u8), hoặc API.
+    const isStaticAsset = STATIC_ASSETS.includes(url.pathname) ||
+        url.pathname.endsWith('.js') ||
+        url.pathname.endsWith('.css') ||
+        url.pathname.endsWith('.html');
+
+    const isImageOrVideo = url.pathname.match(/\.(png|jpg|jpeg|gif|webp|svg|mp4|m3u8|ts)$/i) ||
+        url.host.includes('cloudinary') ||
+        url.host.includes('img.otruyen');
+
+    // API requests: always network
     if (url.pathname.startsWith('/ophim') || url.pathname.startsWith('/otruyen')) {
         return;
     }
 
-    // Fix: Không cache request từ chrome-extension:// hoặc scheme lạ
-    if (!url.protocol.startsWith('http')) {
-        return;
-    }
+    // Scheme logic
+    if (!url.protocol.startsWith('http')) return;
 
     event.respondWith(
         fetch(event.request)
             .then((response) => {
-                // Cache successful responses
-                if (response.ok && event.request.method === 'GET') {
+                // Chỉ cache nếu là File tĩnh và KHÔNG phải Media nặng
+                if (response.ok && event.request.method === 'GET' && isStaticAsset && !isImageOrVideo) {
                     const clone = response.clone();
                     caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, clone);
+                        try {
+                            cache.put(event.request, clone);
+                        } catch (e) {
+                            console.warn('Cache full, skipping put');
+                        }
                     });
                 }
                 return response;
