@@ -15,7 +15,7 @@ const Player = {
      * @param {string} backupUrl - URL dự phòng (nếu có)
      */
     initVideo(container, url, nextEpCallback, poster, backupUrl = null) {
-        console.log('🎬 ArtPlayer init:', url);
+        console.log('🎬 ArtPlayer init = Backup Link:', url);
         this.destroy();
         if (container) container.innerHTML = '';
 

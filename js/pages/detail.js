@@ -192,8 +192,8 @@ function renderListButtons(item, isPhim) {
                     onClick: () => {
                         const safeName = item.name.replace(/'/g, "\\'");
                         const safeThumb = item.thumb_url.replace(/'/g, "\\'");
-                        const epLink = ep.link_embed || ep.link_m3u8;
-                        const epBackup = (ep.link_m3u8 && ep.link_embed && ep.link_m3u8 !== ep.link_embed) ? ep.link_m3u8 : null;
+                        const epLink = ep.link_m3u8 || ep.link_embed;
+                        const epBackup = (ep.link_m3u8 && ep.link_embed && ep.link_m3u8 !== ep.link_embed) ? ep.link_embed : null;
                         playEp(epLink, ep.name, item.slug, safeName, safeThumb, epBackup);
                     }
                 })));
