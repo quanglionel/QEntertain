@@ -9,6 +9,19 @@ const currentMode = localStorage.getItem('qhub-mode') || 'phim';
 window.currentMode = currentMode;
 window.currentDetailData = null;
 
+const ICONS = {
+    play: '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+    book: '<svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>'
+};
+
+const PAGE_TRANSITION_CSS = `
+.fade-in { animation: fadeIn 0.3s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+`;
+const transStyle = document.createElement('style');
+transStyle.textContent = PAGE_TRANSITION_CSS;
+document.head.appendChild(transStyle);
+
 // Infinite Scroll State
 let infiniteScrollState = {
     active: false,
@@ -491,13 +504,15 @@ function renderSections() {
     const container = document.getElementById('movieSections');
     if (!container) return;
     container.innerHTML = '';
+    container.classList.add('fade-in'); // Add animation
 
     const sections = currentMode === 'phim' ? PHIM_SECTIONS : TRUYEN_SECTIONS;
     const isPhim = currentMode === 'phim';
 
-    // Render History if exists
+    // Render History (Continue Watching)
     if (window.getHistory) {
-        const history = getHistory(isPhim ? 'phim' : 'truyen');
+        let history = getHistory(isPhim ? 'phim' : 'truyen');
+        // Filter out items without progress if needed, but usually history implies progress
         if (history.length > 0) {
             const hSec = document.createElement('section');
             hSec.className = 'movie-section';
@@ -506,27 +521,50 @@ function renderSections() {
                     <h2 class="section-title">🕒 ${isPhim ? 'Xem tiếp' : 'Đọc tiếp'}</h2>
                     <button class="see-all" onclick="handleNav('history')">Xem tất cả</button>
                 </div>
-                <div class="movie-list" id="homeHistoryList"></div>
-           `;
+                <div class="movie-list" id="homeHistoryList" style="padding-bottom:10px;"></div>
+            `;
             container.appendChild(hSec);
 
             const list = hSec.querySelector('#homeHistoryList');
             history.slice(0, 10).forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'movie-card';
-                card.onclick = isPhim ?
-                    () => showDetail(item.slug).then(() => playEp(item.episode_url, item.episode_name, item.slug, item.name, item.thumb_url)) :
-                    () => readChap(item.chapter_api_data, true, item.slug);
+
+                // Click Action
+                if (isPhim) {
+                    card.onclick = () => {
+                        showDetail(item.slug).then(() => {
+                            if (item.episode_url) playEp(item.episode_url, item.episode_name, item.slug, item.name, item.thumb_url);
+                        });
+                    };
+                } else {
+                    card.onclick = () => {
+                        if (item.chapter_api_data) readChap(item.chapter_api_data, true, item.slug);
+                        else showDetail(item.slug);
+                    };
+                }
 
                 const imgUrl = isPhim ? API.getPhimImageUrl(item.thumb_url) : API.getTruyenImageUrl(item.thumb_url);
                 const label = isPhim ? `Tập ${item.episode_name}` : `Ch.${item.chapter_name}`;
+
+                // SVG Icons
+                const icon = isPhim ? '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:white"><path d="M8 5v14l11-7z"/></svg>'
+                    : '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:white"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>';
+
                 card.innerHTML = `
                     <div class="movie-poster">
-                        <img class="movie-poster-img" src="${imgUrl}" loading="lazy" onerror="this.parentElement.style.backgroundColor='#333'">
-                        <div class="movie-poster-overlay"><div class="play-icon">${isPhim ? ICONS.play : ICONS.book}</div></div>
-                        <span class="movie-quality" style="background:var(--accent);">${label}</span>
+                        <img class="movie-poster-img" src="${imgUrl}" loading="lazy" onerror="this.src='https://via.placeholder.com/200x300?text=Error'">
+                        <div class="movie-poster-overlay">
+                             <div class="play-icon" style="background:rgba(255,255,255,0.2);backdrop-filter:blur(4px);border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+                                ${icon}
+                             </div>
+                        </div>
+                        <span class="movie-quality" style="background:var(--accent);font-size:0.75rem;">${label}</span>
+                        <div class="progress-bar-container" style="position:absolute;bottom:0;left:0;right:0;height:4px;background:rgba(0,0,0,0.5);">
+                            <div class="progress-bar" style="height:100%;width:100%;background:var(--accent);"></div>
+                        </div>
                     </div>
-                    <div class="movie-info"><h3 class="movie-title">${item.name}</h3></div>
+                    <div class="movie-info"><h3 class="movie-title" style="font-size:0.9rem;">${item.name}</h3></div>
                 `;
                 list.appendChild(card);
             });
