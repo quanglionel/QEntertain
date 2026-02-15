@@ -249,9 +249,9 @@ function renderBottomNav() {
             <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg> 
             <span>Trang chủ</span>
         </button>
-        <button class="bottom-nav-item" onclick="renderFilterPage();updateBottomNav(this)">
-            <svg viewBox="0 0 24 24"><path d="M12 10.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1c.61 0 1.1-.49 1.1-1.1s-.49-1.1-1.1-1.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19L6 18l3.81-8.19L18 6l-3.81 8.19z"/></svg>
-            <span>Bộ Lọc</span>
+        <button class="bottom-nav-item" onclick="handleNav('shorts');updateBottomNav(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.54 9L8.88 3.46a3.2 3.2 0 00-4.88 2.77v11.54a3.2 3.2 0 004.88 2.77l9.66-5.54a3.2 3.2 0 000-5.54z"/></svg>
+            <span>Shorts</span>
         </button>
         <button class="bottom-nav-item" onclick="handleNav('history');updateBottomNav(this)">
             <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
@@ -362,6 +362,23 @@ window.handleNav = async (section, label) => {
             if (window.renderBookmarkPage) renderBookmarkPage();
             else main.innerHTML = '<p>Bookmarks module missing.</p>';
             return;
+        }
+
+        // Shorts Logic
+        if (section === 'shorts') {
+            if (currentMode === 'phim') {
+                section = 'tv-shows'; // Map to TV Shows for now
+                label = 'Short Films';
+            } else {
+                main.innerHTML = `
+                <div style="text-align:center;padding:100px 20px;">
+                    <div style="font-size:3rem;margin-bottom:20px;">🚧</div>
+                    <h3>Tính năng đang phát triển</h3>
+                    <p style="color:#888;margin-top:10px;">Chế độ Shorts chưa hỗ trợ Truyện tranh.</p>
+                    <button onclick="handleNav('home')" style="margin-top:20px;padding:10px 20px;background:var(--accent);border:none;border-radius:8px;color:white;">Về Trang chủ</button>
+                </div>`;
+                return;
+            }
         }
 
         let res; // Moved up
