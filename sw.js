@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qphim-v24';
+const CACHE_NAME = 'qphim-v25';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -18,6 +18,7 @@ const STATIC_ASSETS = [
     '/css/watch.css',
     '/css/chapter_list.css',
     '/css/responsive.css',
+    '/css/mobile-nav.css',
     '/css/notification.css',
 
     // JS - Core

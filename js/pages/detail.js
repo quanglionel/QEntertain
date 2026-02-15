@@ -52,6 +52,7 @@ function closeDetail() {
 
 function renderDetailContent(item, isPhim) {
     const content = document.getElementById('detailContent');
+    document.title = `${item.name} | QPhim`; // Dynamic Title
     const imgUrl = isPhim ? API.getPhimImageUrl(item.thumb_url) : API.getTruyenImageUrl(item.thumb_url);
     const safeName = item.name ? item.name.replace(/'/g, "\\'") : '';
     const safeThumb = item.thumb_url ? item.thumb_url.replace(/'/g, "\\'") : '';

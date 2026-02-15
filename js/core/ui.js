@@ -133,6 +133,19 @@ function renderHeader() {
     sidebar.id = 'appSidebar';
     sidebar.className = 'sidebar-overlay';
     sidebar.onclick = (e) => { if (e.target === sidebar) toggleSidebar(false); };
+
+    // Sidebar Mode Switch HTML
+    const sidebarModeHTML = `
+        <div class="sidebar-mode">
+            <button class="${currentMode === 'phim' ? 'active' : ''}" onclick="toggleMode('phim')">
+                <span>🎬</span> Phim
+            </button>
+            <button class="${currentMode === 'truyen' ? 'active' : ''}" onclick="toggleMode('truyen')">
+                <span>📚</span> Truyện
+            </button>
+        </div>
+    `;
+
     sidebar.innerHTML = `
         <div class="sidebar-content">
             <div class="sidebar-header">
@@ -140,6 +153,7 @@ function renderHeader() {
                 <button onclick="toggleSidebar(false)" style="background:none;border:none;color:white;font-size:1.5rem;cursor:pointer;">✕</button>
             </div>
             <nav class="sidebar-nav">${navHTML}</nav>
+            ${sidebarModeHTML}
         </div>
     `;
     document.body.appendChild(sidebar);
@@ -147,7 +161,7 @@ function renderHeader() {
     // 2. Header HTML
     const isTruyen = currentMode === 'truyen';
 
-    // Segmented Control HTML
+    // Segmented Control HTML for Desktop
     const modeSwitchHTML = `
         <div class="mode-segmented-control">
             <div class="mode-option ${!isTruyen ? 'active' : ''}" onclick="toggleMode('phim')">
@@ -162,7 +176,7 @@ function renderHeader() {
     header.innerHTML = `
         <div class="header-inner">
             <div class="header-left">
-                <button class="header-icon-btn" onclick="toggleSidebar(true)" style="margin-right:10px;font-size:1.4rem;">☰</button>
+                <button class="header-icon-btn mobile-only" onclick="toggleSidebar(true)" style="margin-right:10px;font-size:1.4rem; display:none;">☰</button>
                 <a href="#" class="logo" onclick="handleNav('home'); return false;">
                     <span class="logo-text">${config.label}</span>
                 </a>
@@ -171,18 +185,18 @@ function renderHeader() {
                 </div>
             </div>
             <div class="header-right">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="Tìm kiếm...">
+                    <button class="search-toggle">🔍</button>
+                </div>
                 <div class="mobile-shortcuts">
                     <button class="header-icon-btn noti-btn" onclick="toggleNotiModal()" aria-label="Thông báo">
                         🔔
                         <span class="noti-badge" id="noti-badge">0</span>
                     </button>
-                    <button class="header-icon-btn" onclick="handleNav('history')" aria-label="Lịch sử">${ICONS.history}</button>
+                    <button class="header-icon-btn" onclick="handleNav('history')" aria-label="Lịch sử">🕒</button>
                     <button class="header-icon-btn" onclick="openSettings()" aria-label="Cài đặt">⚙️</button>
                     <button class="header-icon-btn" onclick="handleNav('bookmarks')" aria-label="Tủ đồ" style="color:#ff5555;">❤</button>
-                </div>
-                <div class="search-box">
-                    <input type="text" class="search-input" placeholder="Tìm kiếm...">
-                    <button class="search-toggle">${ICONS.search}</button>
                 </div>
             </div>
         </div>
@@ -190,11 +204,60 @@ function renderHeader() {
 
     if (window.initSearchBox) window.initSearchBox();
 
+    // Render Bottom Nav (new)
+    renderBottomNav();
+
     // Init Header Scroll Effect
     window.addEventListener('scroll', () => {
         header.classList.toggle('scrolled', window.scrollY > 50);
     });
 }
+
+function renderBottomNav() {
+    // Remove old nav if exists
+    const oldNav = document.getElementById('bottomNav');
+    if (oldNav) oldNav.remove();
+
+    const nav = document.createElement('nav');
+    nav.id = 'bottomNav';
+    nav.className = 'mobile-bottom-nav';
+    nav.innerHTML = `
+        <button class="bottom-nav-item active" onclick="handleNav('home');updateBottomNav(this)">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg> 
+            <span>Trang chủ</span>
+        </button>
+        <button class="bottom-nav-item" onclick="renderDiscoveryPage();updateBottomNav(this)">
+            <svg viewBox="0 0 24 24"><path d="M12 10.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1c.61 0 1.1-.49 1.1-1.1s-.49-1.1-1.1-1.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19L6 18l3.81-8.19L18 6l-3.81 8.19z"/></svg>
+            <span>Khám phá</span>
+        </button>
+        <button class="bottom-nav-item" onclick="toggleSearchMobile();updateBottomNav(this)">
+            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            <span>Tìm kiếm</span>
+        </button>
+        <button class="bottom-nav-item" onclick="handleNav('bookmarks');updateBottomNav(this)">
+             <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+            <span>Tủ đồ</span>
+        </button>
+        <button class="bottom-nav-item" onclick="toggleSidebar(true);updateBottomNav(this)">
+            <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+            <span>Menu</span>
+        </button>
+    `;
+    document.body.appendChild(nav);
+}
+
+window.updateBottomNav = (el) => {
+    document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+    if (el) el.classList.add('active');
+};
+
+window.toggleSearchMobile = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const input = document.querySelector('.search-input');
+    if (input) {
+        setTimeout(() => input.focus(), 300);
+    }
+};
 
 // Keep toggleMode logic
 window.toggleMode = (targetMode) => {
@@ -202,7 +265,11 @@ window.toggleMode = (targetMode) => {
 };
 
 window.handleNav = async (section, label) => {
-    if (section === 'home') { renderAll(); return; }
+    if (section === 'home') {
+        document.title = 'QPhim - Trang chủ';
+        renderAll();
+        return;
+    }
 
     const hero = document.getElementById('hero');
     if (hero) hero.style.display = 'none';
@@ -518,6 +585,72 @@ function formatRelativeTime(dateStr) {
         return date.toLocaleDateString();
     } catch (e) { return ''; }
 }
+
+/* === DISCOVERY PAGE (FILTER) === */
+async function renderDiscoveryPage() {
+    document.title = 'Khám phá - QPhim & QTruyện';
+    const hero = document.getElementById('hero');
+    if (hero) hero.style.display = 'none';
+
+    const main = document.getElementById('movieSections');
+    if (!main) return;
+
+    main.innerHTML = '<div class="loading-spinner"></div>';
+    main.style.paddingTop = '80px';
+
+    // Reset Infinite Scroll
+    infiniteScrollState.active = false;
+
+    try {
+        const isPhim = currentMode === 'phim';
+        let genres = [];
+        let countries = [];
+
+        // Fetch Data
+        if (isPhim) {
+            const [gRes, cRes] = await Promise.all([API.getPhimCategories(), API.getPhimCountries()]);
+            genres = gRes?.data?.items || [];
+            countries = cRes?.data?.items || [];
+        } else {
+            const gRes = await API.getTruyenCategories();
+            genres = gRes?.data?.items || [];
+        }
+
+        let html = `
+            <section class="movie-section">
+                <div class="section-header">
+                    <h2 class="section-title">🧭 Khám phá ${isPhim ? 'Phim' : 'Truyện'}</h2>
+                     <button class="see-all" onclick="handleNav('home')">← Trang chủ</button>
+                </div>
+                
+                <div style="background:var(--bg-card); padding:20px; border-radius:12px; margin-bottom:20px;">
+                    <h3 style="color:var(--accent); margin-bottom:15px; font-size:1.1rem;">📂 Thể loại</h3>
+                    <div class="genre-grid-page">
+                        ${genres.map(g => `<button class="genre-tag-large" onclick="handleNav('${g.slug}', '${g.name}')">${g.name}</button>`).join('')}
+                    </div>
+                </div>
+        `;
+
+        if (isPhim && countries.length > 0) {
+            html += `
+                <div style="background:var(--bg-card); padding:20px; border-radius:12px;">
+                    <h3 style="color:#2ecc71; margin-bottom:15px; font-size:1.1rem;">🌍 Quốc gia</h3>
+                    <div class="genre-grid-page">
+                        ${countries.map(c => `<button class="genre-tag-large" onclick="handleNav('${c.slug}', '${c.name}')">${c.name}</button>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        html += '</section>';
+        main.innerHTML = html;
+
+    } catch (e) {
+        console.error(e);
+        main.innerHTML = '<p class="text-center p-5">Lỗi tải dữ liệu khám phá.</p>';
+    }
+}
+window.renderDiscoveryPage = renderDiscoveryPage;
 
 window.renderAll = renderAll;
 window.formatRelativeTime = formatRelativeTime;

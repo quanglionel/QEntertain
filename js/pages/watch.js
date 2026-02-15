@@ -10,6 +10,7 @@ window.playEp = (url, epName, slug, name, thumb) => {
     // 1. Setup Header
     const titleEl = document.getElementById('watchTitle');
     if (titleEl) titleEl.textContent = `${name} - Tập ${epName}`;
+    document.title = `${name} - Tập ${epName} | QPhim`; // Set Playing Title
 
     // Back Button Logic
     const backBtn = document.getElementById('watchBackBtn');
@@ -17,6 +18,7 @@ window.playEp = (url, epName, slug, name, thumb) => {
         backBtn.onclick = () => {
             watchPage.classList.add('hidden');
             document.getElementById('detailPage')?.classList.remove('hidden');
+            document.title = `${name} | QPhim`; // Reset title
 
             // Stop video
             if (window.Player) Player.destroy();
@@ -128,6 +130,8 @@ window.readChap = async (apiUrl, scrollToTop = false, slug = null) => {
         backBtn.onclick = () => {
             readerPage.classList.add('hidden');
             document.getElementById('detailPage')?.classList.remove('hidden');
+            if (window.currentDetailData) document.title = `${window.currentDetailData.name} | QPhim`; // Reset Title
+
             if (window.Player && Player.destroy) Player.destroy();
             container.innerHTML = '';
         };
@@ -200,19 +204,21 @@ window.readChap = async (apiUrl, scrollToTop = false, slug = null) => {
                             chapter_api_data: apiUrl,
                             time: Date.now()
                         });
+
+                        document.title = `${window.currentDetailData.name} - ${cName} | QPhim`; // Set Reading Title
                     }
                 }
-            }
 
-            if (window.Player) {
-                Player._currentApiUrl = apiUrl;
-                Player.initReader(container, images, nav, currentChapterName);
-                container.scrollTo({ top: 0, behavior: 'instant' });
+                if (window.Player) {
+                    Player._currentApiUrl = apiUrl;
+                    Player.initReader(container, images, nav, currentChapterName);
+                    container.scrollTo({ top: 0, behavior: 'instant' });
+                } else {
+                    container.innerHTML = 'Lỗi: Không tìm thấy trình đọc.';
+                }
             } else {
-                container.innerHTML = 'Lỗi: Không tìm thấy trình đọc.';
+                container.innerHTML = `<div class="error-msg">Lỗi API: ${json.message || 'Unknown'}</div>`;
             }
-        } else {
-            container.innerHTML = `<div class="error-msg">Lỗi API: ${json.message || 'Unknown'}</div>`;
         }
     } catch (e) {
         container.innerHTML = `<div class="error-msg">Lỗi tải: ${e.message}</div>`;
