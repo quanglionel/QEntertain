@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qphim-v2';
+const CACHE_NAME = 'qphim-v5';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -64,6 +64,11 @@ self.addEventListener('fetch', (event) => {
 
     // API requests: always network (don't cache)
     if (url.pathname.startsWith('/ophim') || url.pathname.startsWith('/otruyen')) {
+        return;
+    }
+
+    // Fix: Không cache request từ chrome-extension:// hoặc scheme lạ
+    if (!url.protocol.startsWith('http')) {
         return;
     }
 

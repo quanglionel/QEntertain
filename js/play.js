@@ -137,8 +137,10 @@ window.readChap = async (apiUrl, scrollToTop = false, slug = null) => {
             console.log('Fetching comic detail for navigation:', slug);
             try {
                 const detailRes = await API.getTruyenDetail(slug);
-                if (detailRes.status === 'success') {
+                if (detailRes && (detailRes.status === 'success' || detailRes.data)) {
                     window.currentDetailData = detailRes.data.item;
+                } else {
+                    console.error('API Error: detailRes format unexpected', detailRes);
                 }
             } catch (err) {
                 console.error('Failed to fetch detail for nav:', err);
@@ -181,6 +183,7 @@ window.readChap = async (apiUrl, scrollToTop = false, slug = null) => {
 
                     // === LƯU LỊCH SỬ TRUYỆN ===
                     if (window.currentDetailData) {
+                        console.log('Saving History Truyen:', window.currentDetailData.slug); // DEBUG LOG
                         saveHistory({
                             id: window.currentDetailData._id,
                             slug: window.currentDetailData.slug,

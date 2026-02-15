@@ -79,7 +79,10 @@ function renderHistoryPage() {
 
         if (isTruyen) {
             // Updated: pass slug to ensure nav works
-            card.onclick = () => readChap(item.chapter_api_data, true, item.slug);
+            card.onclick = () => {
+                console.log('Clicked History Item:', item); // DEBUG LOG
+                readChap(item.chapter_api_data, true, item.slug);
+            }
         } else {
             card.onclick = () => {
                 showDetail(item.slug).then(() => {
