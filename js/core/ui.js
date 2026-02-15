@@ -345,6 +345,8 @@ window.handleNav = async (section, label) => {
     };
 
     try {
+        let res; // Declarated at start of try block
+
         if (section === 'genres') {
             const apiRes = currentMode === 'phim' ? await API.getPhimCategories() : await API.getTruyenCategories();
             if (apiRes?.data?.items) renderGenreList(apiRes.data.items);
@@ -395,7 +397,7 @@ window.handleNav = async (section, label) => {
             }
         }
 
-        let res; // Moved up
+        // let res; // Moved to top
 
         if (section === 'search') {
             const keyword = infiniteScrollState.keyword;
