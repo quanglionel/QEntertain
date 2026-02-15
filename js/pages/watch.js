@@ -2,6 +2,24 @@
 
 // Global function for playing movie episode
 window.playEp = (url, epName, slug, name, thumb, backupUrl = null) => {
+    // === AUTO FIND BACKUP FROM OTHER SERVERS ===
+    if (!backupUrl && window.currentDetailData?.episodes) {
+        try {
+            for (const server of window.currentDetailData.episodes) {
+                const items = server.server_data || server.items || [];
+                const sameEp = items.find(i => i.name == epName); // Loose eq for "1" vs 1
+                if (sameEp) {
+                    const otherLink = sameEp.link_m3u8 || sameEp.link_embed;
+                    if (otherLink && otherLink !== url) {
+                        console.log(`🔗 Found Backup from Server [${server.server_name}]:`, otherLink);
+                        backupUrl = otherLink;
+                        break; // Found one is enough
+                    }
+                }
+            }
+        } catch (e) { console.error('Error finding backup server', e); }
+    }
+
     // 0. Chuyển view: Ẩn detail, hiện watchPage
     document.getElementById('detailPage')?.classList.add('hidden');
     const watchPage = document.getElementById('watchPage');
