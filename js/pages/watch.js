@@ -1,7 +1,7 @@
 /* === PLAY & READ LOGIC === */
 
 // Global function for playing movie episode
-window.playEp = (url, epName, slug, name, thumb) => {
+window.playEp = (url, epName, slug, name, thumb, backupUrl = null) => {
     // 0. Chuyển view: Ẩn detail, hiện watchPage
     document.getElementById('detailPage')?.classList.add('hidden');
     const watchPage = document.getElementById('watchPage');
@@ -52,9 +52,10 @@ window.playEp = (url, epName, slug, name, thumb) => {
                     btn.dataset.ep = ep.name;
 
                     const link = ep.link_m3u8 || ep.link_embed;
+                    const backupUrl = (ep.link_m3u8 && ep.link_embed && ep.link_m3u8 !== ep.link_embed) ? ep.link_embed : null;
 
                     btn.onclick = () => {
-                        playEp(link, ep.name, slug, name, thumb);
+                        playEp(link, ep.name, slug, name, thumb, backupUrl);
                     };
 
                     listContainer.appendChild(btn);
@@ -94,7 +95,7 @@ window.playEp = (url, epName, slug, name, thumb) => {
     };
 
     if (container && window.Player) {
-        Player.initVideo(container, url, nextEpCallback, thumb);
+        Player.initVideo(container, url, nextEpCallback, thumb, backupUrl);
     }
 
     // Lưu history phim & Mark Watched

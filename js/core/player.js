@@ -11,9 +11,11 @@ const Player = {
      * @param {HTMLElement} container - Nơi chứa player
      * @param {string} url - URL video (m3u8 hoặc embed)
      * @param {Function} nextEpCallback - Hàm gọi khi hết phim (Auto Next)
+     * @param {string} poster - URL ảnh thumb
+     * @param {string} backupUrl - URL dự phòng (nếu có)
      */
-    initVideo(container, url, nextEpCallback, poster) {
-        console.log('🎬 initVideo:', url);
+    initVideo(container, url, nextEpCallback, poster, backupUrl = null) {
+        console.log('🎬 initVideo:', url, 'Backup:', backupUrl);
         this.destroy();
         if (container) container.innerHTML = '';
 
@@ -21,17 +23,36 @@ const Player = {
         videoWrapper.className = 'video-container';
         container.appendChild(videoWrapper);
 
+        // UI function to show error
+        this.showError = (msg) => {
+            videoWrapper.innerHTML = '';
+            const errDiv = document.createElement('div');
+            errDiv.style.cssText = 'width:100%;height:100%;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#fff;text-align:center;gap:15px;';
+            errDiv.innerHTML = `
+                <div style="font-size:3rem;">⚠️</div>
+                <div style="font-size:1.1rem;color:#f55;">${msg}</div>
+                <div style="display:flex;gap:10px;">
+                    <button onclick="location.reload()" style="padding:8px 16px;border-radius:4px;border:none;background:#333;color:white;cursor:pointer;">Tải lại trang</button>
+                    ${backupUrl ? `<button id="retryBackup" style="padding:8px 16px;border-radius:4px;border:none;background:var(--accent);color:white;cursor:pointer;">Thử server dự phòng</button>` : ''}
+                </div>
+            `;
+            videoWrapper.appendChild(errDiv);
+
+            const retryBtn = errDiv.querySelector('#retryBackup');
+            if (retryBtn) retryBtn.onclick = () => this.initVideo(container, backupUrl, nextEpCallback, poster, null);
+        };
+
         if (url && url.includes('.m3u8')) {
             const video = document.createElement('video');
             video.className = 'video-player';
             if (poster) video.poster = poster;
             video.playsInline = true;
             video.autoplay = true;
-            video.muted = true; // Muted autoplay luôn được Chrome cho phép
+            video.muted = true; // Start muted
             videoWrapper.appendChild(video);
 
             if (Hls.isSupported()) {
-                // ① Tạo Plyr TRƯỚC trên video trống
+                // ① Plyr Setup
                 this.plyr = new Plyr(video, {
                     autoplay: true,
                     muted: true,
@@ -42,22 +63,13 @@ const Player = {
                     settings: ['quality', 'speed']
                 });
 
-                this.plyr.on('ended', () => {
-                    if (nextEpCallback) nextEpCallback();
-                });
+                this.plyr.on('ended', () => { if (nextEpCallback) nextEpCallback(); });
+                video.addEventListener('playing', () => { video.muted = false; if (this.plyr) this.plyr.muted = false; }, { once: true });
 
-                // Auto-unmute khi video bắt đầu phát
-                video.addEventListener('playing', () => {
-                    video.muted = false;
-                    if (this.plyr) this.plyr.muted = false;
-                }, { once: true });
-
-                // ② Tạo HLS instance
+                // ② HLS Setup
                 this.hls = new Hls({
                     enableWorker: false,
                     maxBufferLength: 30,
-                    maxMaxBufferLength: 60,
-                    maxBufferSize: 30 * 1000 * 1000,
                     startLevel: -1
                 });
 
@@ -67,54 +79,61 @@ const Player = {
                         console.warn(`HLS Fatal: ${data.type} - ${data.details}`);
                         switch (data.type) {
                             case Hls.ErrorTypes.NETWORK_ERROR:
+                                console.log('Network error, recovering...');
                                 this.hls.startLoad();
                                 break;
                             case Hls.ErrorTypes.MEDIA_ERROR:
+                                console.log('Media error, recovering...');
                                 this.hls.recoverMediaError();
                                 break;
                             default:
                                 this.hls.destroy();
+                                if (backupUrl && url !== backupUrl) {
+                                    console.log('Switching to Backup URL');
+                                    this.initVideo(container, backupUrl, nextEpCallback, poster, null);
+                                } else {
+                                    this.showError('Không thể phát video này.<br>Vui lòng thử tập khác hoặc server khác.');
+                                }
                                 break;
                         }
                     }
                 });
 
-                // ③ Khi manifest parsed → tạo quality selector
+                // Manifest Loaded
                 this.hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
                     const levels = this.hls.levels;
                     const qualities = levels.map(l => l.height);
-                    console.log('📋 Qualities:', qualities);
-
-                    // Tạo quality selector nếu có nhiều hơn 1 quality
-                    if (qualities.length > 0) {
-                        this._createQualitySelector(videoWrapper, qualities);
-                    }
+                    if (qualities.length > 0) this._createQualitySelector(videoWrapper, qualities);
                 });
 
-                // ④ Load source + attach media SAU KHI Plyr đã wrap xong
                 this.hls.loadSource(url);
                 this.hls.attachMedia(video);
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                // Safari native HLS
+                // Safari
                 video.src = url;
-                this.plyr = new Plyr(video, defaultOptions);
+                this.plyr = new Plyr(video);
+                this.plyr.on('ended', () => { if (nextEpCallback) nextEpCallback(); });
 
-                this.plyr.on('ended', () => {
-                    if (nextEpCallback) nextEpCallback();
+                video.addEventListener('error', () => {
+                    if (backupUrl) this.initVideo(container, backupUrl, nextEpCallback, poster, null);
+                    else this.showError('Lỗi phát video trên trình duyệt này.');
                 });
             } else {
-                videoWrapper.innerHTML = '<p style="color:#fff;text-align:center;padding:20px;">Trình duyệt không hỗ trợ phát video này.</p>';
+                this.showError('Trình duyệt không hỗ trợ phát HLS.');
             }
         } else {
-            // Embed Iframe (Basic support)
+            // Embed Iframe
+            if (!url) {
+                this.showError('Link phim bị lỗi hoặc rỗng.');
+                return;
+            }
             videoWrapper.innerHTML = `<div class="plyr__video-embed" id="player">
                 <iframe src="${url}" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
             </div>`;
-            // Init Plyr for Iframe (YouTube/Vimeo only usually, but generic might work for UI)
-            // Note: Custom embeds might not work perfectly with Plyr UI overlays.
         }
 
-        // Resume Playback Logic (Only for Native Video)
+        // Resume Logic
+
         if (typeof video !== 'undefined' && video) {
             const saveKey = `qhub-playback-${url}`;
             const savedTime = parseFloat(localStorage.getItem(saveKey) || '0');

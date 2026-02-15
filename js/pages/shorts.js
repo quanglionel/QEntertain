@@ -99,9 +99,10 @@ window.playShort = async (slug) => {
             const link = firstEp.link_m3u8 || firstEp.link_embed;
             // Use API helper to get full image url
             const thumb = API.getPhimImageUrl(data.thumb_url);
+            const backupUrl = (firstEp.link_m3u8 && firstEp.link_embed && firstEp.link_m3u8 !== firstEp.link_embed) ? firstEp.link_embed : null;
 
             // 4. Call PlayEp (Handles UI switching and Player init)
-            playEp(link, firstEp.name, slug, data.name, thumb);
+            playEp(link, firstEp.name, slug, data.name, thumb, backupUrl);
         } else {
             alert('Phim đang cập nhật, vui lòng thử lại sau!');
         }
