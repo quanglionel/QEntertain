@@ -10,6 +10,7 @@
 function initAllEvents() {
     // initHeroSlider(); // Đã chuyển sang components.js
     if (window.initThemeToggle) initThemeToggle();
+    if (window.initGestures) initGestures();
     // initSearchBox(); // Đã gọi trong renderHeader
     // initHeaderScroll(); // Đã gọi trong renderHeader
 
