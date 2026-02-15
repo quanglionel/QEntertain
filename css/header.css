@@ -192,10 +192,9 @@
 
 /* === Mobile Shortcuts (Icons for History/Category) === */
 .mobile-shortcuts {
-    display: none;
-    /* Ẩn trên desktop */
+    display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 5px;
 }
 
 .header-icon-btn {

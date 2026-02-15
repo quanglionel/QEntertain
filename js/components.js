@@ -83,42 +83,86 @@ async function loadMoreContent() {
 }
 
 /* === HEADER & NAV === */
+/* === HEADER & NAV (SIDEBAR MODE) === */
+const SIDEBAR_CSS = `
+.sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; }
+.sidebar-overlay.active { opacity: 1; visibility: visible; }
+.sidebar-content { position: absolute; top: 0; left: 0; bottom: 0; width: 280px; background: var(--bg-card); transform: translateX(-100%); transition: 0.3s; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
+.sidebar-overlay.active .sidebar-content { transform: translateX(0); }
+.sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.sidebar-nav a { display: block; padding: 12px 15px; color: var(--text-secondary); text-decoration: none; border-radius: 8px; margin-bottom: 5px; font-weight: 500; transition: 0.2s; }
+.sidebar-nav a:hover, .sidebar-nav a.active { background: var(--bg-hover); color: var(--accent); }
+.sidebar-mode { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border); }
+.sidebar-mode button { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 10px; justify-content: center; }
+.sidebar-mode button.active { background: var(--accent); color: white; border-color: var(--accent); }
+`;
+const sbStyle = document.createElement('style');
+sbStyle.textContent = SIDEBAR_CSS;
+document.head.appendChild(sbStyle);
+
+function toggleSidebar(show) {
+    const sb = document.getElementById('appSidebar');
+    if (sb) {
+        if (show) sb.classList.add('active');
+        else sb.classList.remove('active');
+    }
+}
+
 function renderHeader() {
     const header = document.getElementById('header');
     if (!header) return;
     const config = getModeConfig();
 
-    // Nav Links
+    // 1. Sidebar HTML
     const navHTML = config.navLinks.map(link =>
-        `<a href="#" class="nav-link ${link.active ? 'active' : ''}" data-section="${link.section}">${link.label}</a>`
+        `<a href="#" class="nav-link ${link.active ? 'active' : ''}" data-section="${link.section}" onclick="handleNav('${link.section}');toggleSidebar(false);return false;">${link.label}</a>`
     ).join('');
 
-    // Mode Tabs
     const modeTabsHTML = Object.values(APP_MODES).map(mode =>
-        `<button class="mode-tab ${mode.id === currentMode ? 'active' : ''}" data-mode="${mode.id}">
+        `<button class="${mode.id === currentMode ? 'active' : ''}" onclick="switchMode('${mode.id}')">
             <span>${mode.icon}</span> ${mode.label}
         </button>`
     ).join('');
 
+    // Remove old sidebar if exists (to re-render)
+    const oldSb = document.getElementById('appSidebar');
+    if (oldSb) oldSb.remove();
+
+    const sidebar = document.createElement('div');
+    sidebar.id = 'appSidebar';
+    sidebar.className = 'sidebar-overlay';
+    sidebar.onclick = (e) => { if (e.target === sidebar) toggleSidebar(false); };
+    sidebar.innerHTML = `
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <h2 style="margin:0;font-size:1.2rem;color:var(--accent);">MENU</h2>
+                <button onclick="toggleSidebar(false)" style="background:none;border:none;color:white;font-size:1.5rem;cursor:pointer;">✕</button>
+            </div>
+            <nav class="sidebar-nav">${navHTML}</nav>
+            <div class="sidebar-mode">
+                <h4 style="margin-bottom:10px;font-size:0.9rem;color:#888;">CHẾ ĐỘ</h4>
+                ${modeTabsHTML}
+            </div>
+        </div>
+    `;
+    document.body.appendChild(sidebar);
+
+    // 2. Header HTML
     header.innerHTML = `
         <div class="header-inner">
             <div class="header-left">
+                <button class="header-icon-btn" onclick="toggleSidebar(true)" style="margin-right:10px;font-size:1.4rem;">☰</button>
                 <a href="#" class="logo" onclick="handleNav('home'); return false;">
-                    <span class="logo-icon">▶</span>
                     <span class="logo-text">${config.label}</span>
                 </a>
-                <div class="mode-switcher">${modeTabsHTML}</div>
-                <nav class="nav mobile-hidden">${navHTML}</nav>
             </div>
             <div class="header-right">
                 <div class="mobile-shortcuts">
-                    <button class="header-icon-btn" onclick="handleNav('genres')" aria-label="Thể loại">${ICONS.category}</button>
-                    <button class="header-icon-btn" onclick="handleNav('history')" aria-label="Lịch sử">${ICONS.history}</button>
                     <button class="header-icon-btn" onclick="openSettings()" aria-label="Cài đặt">⚙️</button>
                     <button class="header-icon-btn" onclick="handleNav('bookmarks')" aria-label="Tủ đồ" style="color:#ff5555;">❤</button>
                 </div>
                 <div class="search-box">
-                    <input type="text" class="search-input" placeholder="Tìm kiếm phim, truyện...">
+                    <input type="text" class="search-input" placeholder="Tìm kiếm...">
                     <button class="search-toggle">${ICONS.search}</button>
                 </div>
             </div>
@@ -127,18 +171,6 @@ function renderHeader() {
 
     if (window.initSearchBox) window.initSearchBox();
 
-    // Events
-    header.querySelectorAll('.mode-tab').forEach(tab => {
-        tab.onclick = () => { if (tab.dataset.mode !== currentMode) switchMode(tab.dataset.mode); };
-    });
-    header.querySelectorAll('.nav-link').forEach(link => {
-        link.onclick = (e) => {
-            e.preventDefault();
-            header.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-            handleNav(link.dataset.section, link.textContent);
-        };
-    });
 }
 
 window.handleNav = async (section, label) => {
