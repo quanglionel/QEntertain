@@ -108,7 +108,7 @@ window.playEp = (url, epName, slug, name, thumb) => {
 };
 
 // Global function for reading comic chapter
-window.readChap = async (apiUrl, scrollToTop = false) => {
+window.readChap = async (apiUrl, scrollToTop = false, slug = null) => {
     const readerPage = document.getElementById('readerPage');
     const container = document.getElementById('readerContainer');
     if (!container || !readerPage) return;
@@ -131,10 +131,25 @@ window.readChap = async (apiUrl, scrollToTop = false) => {
     }
 
     try {
+        // === 1. Đảm bảo có dữ liệu truyện (cho Nav/History) ===
+        // Nếu chưa có detail hoặc slug không khớp, fetch lại detail
+        if (slug && (!window.currentDetailData || window.currentDetailData.slug !== slug)) {
+            console.log('Fetching comic detail for navigation:', slug);
+            try {
+                const detailRes = await API.getTruyenDetail(slug);
+                if (detailRes.status === 'success') {
+                    window.currentDetailData = detailRes.data.item;
+                }
+            } catch (err) {
+                console.error('Failed to fetch detail for nav:', err);
+            }
+        }
+
         const json = await API.getTruyenChapter(apiUrl);
 
         if (json.status === 'success') {
             let domain = json.data.domain_cdn;
+            // Fix domain ảnh nếu cần
             if (domain.includes('sv1.otruyencdn.com')) {
                 domain = domain.replace('https://sv1.otruyencdn.com', '/api/truyen-chapter');
             }
@@ -142,7 +157,7 @@ window.readChap = async (apiUrl, scrollToTop = false) => {
             const path = json.data.item.chapter_path;
             const images = json.data.item.chapter_image.map(i => `${domain}/${path}/${i.image_file}`);
 
-            // Tìm Nav + tên chương
+            // === 2. Tìm Nav + Tên chương ===
             let nav = { prev: null, next: null };
             let currentChapterName = '';
 

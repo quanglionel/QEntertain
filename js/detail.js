@@ -95,7 +95,7 @@ function renderDetailContent(item, isPhim) {
         const firstServer = item.chapters[0];
         if (firstServer && firstServer.server_data && firstServer.server_data.length > 0) {
             const chap = firstServer.server_data[0];
-            primaryBtn = `<button class="btn-large btn-play" onclick="readChap('${chap.chapter_api_data}')">
+            primaryBtn = `<button class="btn-large btn-play" onclick="readChap('${chap.chapter_api_data}', true, '${item.slug}')">
                 ${ICONS.book} Đọc Ngay
             </button>`;
         }
@@ -180,8 +180,7 @@ function renderListButtons(item, isPhim) {
             items = svData.map(chap => ({
                 label: `Chương ${chap.chapter_name}`,
                 value: chap.chapter_api_data,
-                data: chap,
-                onClick: () => readChap(chap.chapter_api_data)
+                onClick: () => readChap(chap.chapter_api_data, true, item.slug) // Pass slug
             }));
         }
     }
