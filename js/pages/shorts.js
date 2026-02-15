@@ -130,6 +130,8 @@ window.playShortInSlide = async (slug, btn, isManual = false) => {
             const backupUrl = (firstEp.link_m3u8 && firstEp.link_embed && firstEp.link_m3u8 !== firstEp.link_embed) ? firstEp.link_m3u8 : null;
             const thumb = API.getPhimImageUrl(data.thumb_url);
 
+            console.log(`🎬 Shorts Playing: [${data.name}]`, { link, backupUrl });
+
             // Show player container
             playerContainer.classList.add('active');
             poster.classList.add('hidden');

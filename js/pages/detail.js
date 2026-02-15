@@ -23,6 +23,7 @@ async function showDetail(slug) {
             window.currentDetailData = data;
             data.episodes = res.episodes || res.data?.episodes || data.episodes || [];
             if (data.episodes.length > 0) {
+                console.log('📦 Episodes Array:', data.episodes);
                 data.episodes.forEach(svr => {
                     if (!svr.server_data && svr.items) svr.server_data = svr.items;
                 });
@@ -194,7 +195,10 @@ function renderListButtons(item, isPhim) {
                     onClick: () => {
                         const safeName = item.name.replace(/'/g, "\\'");
                         const safeThumb = item.thumb_url.replace(/'/g, "\\'");
-                        playEp(ep.link_m3u8 || ep.link_embed, ep.name, item.slug, safeName, safeThumb);
+                        const epLink = ep.link_embed || ep.link_m3u8;
+                        const epBackup = (ep.link_m3u8 && ep.link_embed && ep.link_m3u8 !== ep.link_embed) ? ep.link_m3u8 : null;
+                        console.log(`🎯 Episode Clicked: ${ep.name}`, { embed: ep.link_embed, m3u8: ep.link_m3u8 });
+                        playEp(epLink, ep.name, item.slug, safeName, safeThumb, epBackup);
                     }
                 })));
             });
