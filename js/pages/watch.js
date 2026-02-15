@@ -20,8 +20,7 @@ window.playEp = (url, epName, slug, name, thumb, backupUrl = null) => {
                 const sameEp = items.find(i => normalizeEpName(i.name) === targetName);
 
                 if (sameEp) {
-                    // Try embed first as requested
-                    const otherLink = sameEp.link_embed || sameEp.link_m3u8;
+                    const otherLink = sameEp.link_m3u8 || sameEp.link_embed;
                     if (otherLink && otherLink !== url) {
                         console.log(`🔗 Found Backup from Server [${server.server_name}]:`, otherLink);
                         backupUrl = otherLink;
@@ -82,8 +81,8 @@ window.playEp = (url, epName, slug, name, thumb, backupUrl = null) => {
                     btn.innerHTML = `<span class="ep-name">Tập ${ep.name}</span>`;
                     btn.dataset.ep = ep.name;
 
-                    const link = ep.link_embed || ep.link_m3u8;
-                    const backupUrl = (ep.link_embed && ep.link_m3u8 && ep.link_embed !== ep.link_m3u8) ? ep.link_m3u8 : null;
+                    const link = ep.link_m3u8 || ep.link_embed;
+                    const backupUrl = (ep.link_m3u8 && ep.link_embed && ep.link_m3u8 !== ep.link_embed) ? ep.link_embed : null;
 
                     btn.onclick = () => {
                         playEp(link, ep.name, slug, name, thumb, backupUrl);
