@@ -96,10 +96,10 @@ window.playShort = async (slug) => {
         }
 
         if (firstEp) {
-            const link = firstEp.link_m3u8 || firstEp.link_embed;
+            const link = firstEp.link_embed || firstEp.link_m3u8;
             // Use API helper to get full image url
             const thumb = API.getPhimImageUrl(data.thumb_url);
-            const backupUrl = (firstEp.link_m3u8 && firstEp.link_embed && firstEp.link_m3u8 !== firstEp.link_embed) ? firstEp.link_embed : null;
+            const backupUrl = (firstEp.link_m3u8 && firstEp.link_embed && firstEp.link_m3u8 !== firstEp.link_embed) ? firstEp.link_m3u8 : null;
 
             // 4. Call PlayEp (Handles UI switching and Player init)
             playEp(link, firstEp.name, slug, data.name, thumb, backupUrl);
