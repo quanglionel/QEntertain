@@ -38,14 +38,18 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(registration => {
                 console.log('SW registered:', registration);
 
-                // Thử đăng ký Periodic Sync (yêu cầu PWA cài đặt mới được phép)
-                if ('periodicSync' in registration) {
-                    registration.periodicSync.register('update-content', {
-                        minInterval: 24 * 60 * 60 * 1000 // 1 ngày
-                    }).catch(err => {
-                        // Periodic Sync thường bị chặn nếu app chưa cài đặt, lỗi này là bình thường
-                        console.log('Periodic Sync could not be registered:', err);
-                    });
+                // 5. Thử đăng ký Periodic Sync (Chỉ hoạt động khi App đã cài PWA)
+                if (registration.periodicSync) {
+                    try {
+                        registration.periodicSync.register('update-content', {
+                            minInterval: 24 * 60 * 60 * 1000 // 1 ngày
+                        }).catch(err => {
+                            // Lỗi này là bình thường nếu chưa cài App (PWA)
+                            console.debug('Periodic Sync skipped (Not installed/Allowed):', err.message);
+                        });
+                    } catch (e) {
+                        console.debug('Periodic Sync request failed:', e);
+                    }
                 }
             })
             .catch(error => {
