@@ -1,13 +1,24 @@
 /* === PLAY & READ LOGIC === */
 
+// Helper to normalize episode name for comparison (e.g. "01" == "1")
+const normalizeEpName = (name) => {
+    if (name === null || name === undefined) return '';
+    return name.toString().replace(/^0+/, '').trim().toLowerCase(); // Remove leading zeros, trim, lowercase
+};
+
 // Global function for playing movie episode
 window.playEp = (url, epName, slug, name, thumb, backupUrl = null) => {
     // === AUTO FIND BACKUP FROM OTHER SERVERS ===
     if (!backupUrl && window.currentDetailData?.episodes) {
         try {
+            const targetName = normalizeEpName(epName);
+            console.log(`🔍 Searching backup for Ep [${epName}] -> Norm: [${targetName}]`);
+
             for (const server of window.currentDetailData.episodes) {
                 const items = server.server_data || server.items || [];
-                const sameEp = items.find(i => i.name == epName); // Loose eq for "1" vs 1
+                // Find loose match
+                const sameEp = items.find(i => normalizeEpName(i.name) === targetName);
+
                 if (sameEp) {
                     const otherLink = sameEp.link_m3u8 || sameEp.link_embed;
                     if (otherLink && otherLink !== url) {
@@ -17,6 +28,7 @@ window.playEp = (url, epName, slug, name, thumb, backupUrl = null) => {
                     }
                 }
             }
+            if (!backupUrl) console.log('❌ No backup found via cross-server search.');
         } catch (e) { console.error('Error finding backup server', e); }
     }
 
