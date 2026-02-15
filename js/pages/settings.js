@@ -101,6 +101,7 @@ function renderSettingsContent() {
     if (!container) container = document.getElementById('settingsBody');
     if (!container) return; // Safety check
     const settings = getSettings();
+    const currentSource = API._phimSource || 'ophim';
 
     const items = [
         { key: 'autoNext', label: 'Tự động chuyển tập/chương', icon: '⏩' },
@@ -108,7 +109,7 @@ function renderSettingsContent() {
         { key: 'dataSaver', label: 'Tiết kiệm dữ liệu (Ảnh nhỏ hơn)', icon: '📉' },
     ];
 
-    container.innerHTML = items.map(item => `
+    let html = items.map(item => `
         <div class="setting-item">
             <div style="display:flex; align-items:center; gap: 10px;">
                 <span style="font-size: 1.2rem;">${item.icon}</span>
@@ -120,7 +121,37 @@ function renderSettingsContent() {
             </label>
         </div>
     `).join('');
+
+    // Append Source Selector
+    html += `
+        <div class="setting-item" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+            <div style="display:flex; align-items:center; gap: 10px;">
+                <span style="font-size: 1.2rem;">🎬</span>
+                <span>Nguồn phim (Movie Source)</span>
+            </div>
+            <div style="display:flex; gap: 10px; width:100%;">
+                <button class="action-btn source-btn ${currentSource === 'ophim' ? 'active' : ''}" 
+                        onclick="changeSource('ophim')" style="flex:1; border: 1px solid ${currentSource === 'ophim' ? 'var(--accent)' : 'transparent'};">
+                    OPhim (Default)
+                </button>
+                <button class="action-btn source-btn ${currentSource === 'kkphim' ? 'active' : ''}" 
+                        onclick="changeSource('kkphim')" style="flex:1; border: 1px solid ${currentSource === 'kkphim' ? 'var(--accent)' : 'transparent'};">
+                    KKPhim (Dự phòng)
+                </button>
+            </div>
+            <p style="font-size: 0.75rem; color: #888; margin: 0;">* Nếu OPhim lỗi, hãy chuyển sang KKPhim để tiếp tục xem.</p>
+        </div>
+    `;
+
+    container.innerHTML = html;
 }
+
+window.changeSource = (source) => {
+    if (API.setSource(source)) {
+        alert('Đã đổi nguồn sang ' + (source === 'kkphim' ? 'KKPhim' : 'OPhim') + '! Trang web sẽ tải lại để cập nhật dữ liệu mới.');
+        window.location.reload();
+    }
+};
 
 window.toggleSetting = (key, value) => {
     const s = getSettings();

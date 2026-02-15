@@ -1,17 +1,43 @@
 /* ============================================
    QPhim & QTruyện - API Service
-   Kết nối với OPhim và OTruyen API
+   Kết nối với OPhim, KKPhim và OTruyen API
    Qua Nginx reverse proxy (tránh CORS)
    ============================================ */
 
 const API = {
+    // === Nguồn phim hiện tại (Lấy từ Storage) ===
+    _phimSource: QStorage.get('qphim-source', 'ophim'),
+
     // === Base URLs (qua Nginx proxy) ===
-    phim: '/api/phim',
+    ophim: '/api/phim',
+    kkphim: '/api/kkphim',
     truyen: '/api/truyen',
 
     // === CDN ảnh (qua Nginx proxy) ===
-    imgPhim: '/img/phim',
+    imgOPhim: '/img/phim',
+    imgKKPhim: '/img/kkphim',
     imgTruyen: '/img/truyen',
+
+    /** Lấy URL API phim hiện tại */
+    get phim() {
+        return this._phimSource === 'kkphim' ? this.kkphim : this.ophim;
+    },
+
+    /** Lấy URL CDN ảnh hiện tại */
+    get imgPhim() {
+        return this._phimSource === 'kkphim' ? this.imgKKPhim : this.imgOPhim;
+    },
+
+    /** Thay đổi nguồn phim */
+    setSource(source) {
+        if (['ophim', 'kkphim'].includes(source)) {
+            this._phimSource = source;
+            QStorage.save('qphim-source', source);
+            console.log('🔄 Phim Source changed to:', source);
+            return true;
+        }
+        return false;
+    },
 
     /**
      * Gọi API và parse JSON
@@ -23,7 +49,6 @@ const API = {
             const res = await fetch(url);
             if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
             const data = await res.json();
-            // console.log('✅ API Res:', data); // Uncomment nếu cần debug full data
             return data;
         } catch (err) {
             console.error(`❌ API Error [${url}]:`, err);
@@ -32,13 +57,19 @@ const API = {
     },
 
     // ==========================================
-    //  OPHIM - PHIM
+    //  MOVIE API (Supports multiple sources)
     // ==========================================
 
-    /** Lấy danh sách phim trang chủ (Gộp nhiều nguồn) */
+    /** Lấy danh sách phim trang chủ */
     async getPhimHome() {
         try {
-            // Lấy từ 3 nguồn khác nhau để đảm bảo nội dung đa dạng và đủ số lượng
+            // Đối với KKPhim, danh sách phim mới trang chủ là đủ phong phú
+            if (this._phimSource === 'kkphim') {
+                const res = await this.getPhimList('phim-moi-cap-nhat', 1);
+                return res;
+            }
+
+            // Đối với OPhim, gộp nhiều loại để đa dạng
             const [r1, r2, r3] = await Promise.all([
                 this.getPhimList('phim-moi-cap-nhat', 1),
                 this.getPhimList('phim-le', 1),
@@ -51,19 +82,25 @@ const API = {
                 ...(r3?.items || r3?.data?.items || [])
             ];
 
-            // Lọc trùng
             const uniqueItems = Array.from(new Map(items.map(item => [item._id || item.slug, item])).values());
-
             return { status: true, data: { items: uniqueItems } };
         } catch (e) {
-            console.error('Error fetching Home Pages', e);
             return this.getPhimList('phim-moi-cap-nhat', 1);
         }
     },
 
     /** Lấy danh sách phim có bộ lọc */
     async getPhimList(type = 'phim-moi', page = 1) {
-        return this.fetch(`${this.phim}/danh-sach/${type}?page=${page}`);
+        // Cấu trúc URL OPhim: /api/phim/danh-sach/{type}?page={page}
+        // Cấu trúc URL KKPhim: /api/kkphim/danh-sach/{type}?page={page}
+        let url = `${this.phim}/danh-sach/${type}?page=${page}`;
+
+        // Fix cho KKPhim nếu type là mặc định
+        if (this._phimSource === 'kkphim' && type === 'phim-moi') {
+            url = `${this.phim}/danh-sach/phim-moi-cap-nhat?page=${page}`;
+        }
+
+        return this.fetch(url);
     },
 
     /** Tìm kiếm phim */
@@ -73,6 +110,8 @@ const API = {
 
     /** Lấy chi tiết phim */
     async getPhimDetail(slug) {
+        // OPhim: /api/phim/phim/{slug}
+        // KKPhim: /api/kkphim/phim/{slug}
         return this.fetch(`${this.phim}/phim/${slug}`);
     },
 
@@ -109,7 +148,6 @@ const API = {
     //  OTRUYEN - TRUYỆN
     // ==========================================
 
-    /** Lấy danh sách truyện trang chủ (Gộp Truyện Mới, Đang phát hành, Hoàn thành) */
     async getTruyenHome() {
         try {
             const [r1, r2, r3] = await Promise.all([
@@ -123,73 +161,47 @@ const API = {
                 ...(r2?.data?.items || []),
                 ...(r3?.data?.items || [])
             ];
-            // Lọc trùng
             const uniqueItems = Array.from(new Map(items.map(item => [item._id || item.slug, item])).values());
-
             return { status: true, data: { items: uniqueItems } };
         } catch (e) {
             return this.getTruyenList('truyen-moi', 1);
         }
     },
 
-    /** Lấy danh sách truyện mới
-     * @param {number} page - trang
-     */
     async getTruyenList(type = 'truyen-moi', page = 1) {
         return this.fetch(`${this.truyen}/danh-sach/${type}?page=${page}`);
     },
 
-    /** Tìm kiếm truyện
-     * @param {string} keyword - từ khoá
-     * @param {number} page - trang
-     */
     async searchTruyen(keyword, page = 1) {
         return this.fetch(`${this.truyen}/tim-kiem?keyword=${encodeURIComponent(keyword)}&page=${page}`);
     },
 
-    /** Lấy chi tiết truyện
-     * @param {string} slug - slug truyện
-     */
     async getTruyenDetail(slug) {
         return this.fetch(`${this.truyen}/truyen-tranh/${slug}`);
     },
 
-    /** Lấy danh sách thể loại truyện */
     async getTruyenCategories() {
         return this.fetch(`${this.truyen}/the-loai`);
     },
 
-    /** Lấy truyện theo thể loại */
     async getTruyenByCategory(slug, page = 1) {
         return this.fetch(`${this.truyen}/the-loai/${slug}?page=${page}`);
     },
 
-    /**
-     * Tạo URL ảnh truyện
-     * @param {string} thumbUrl - tên file ảnh từ API
-     * @returns {string} - URL đầy đủ
-     */
     getTruyenImageUrl(thumbUrl) {
         if (!thumbUrl) return '';
         if (thumbUrl.startsWith('http')) return thumbUrl;
         return `${this.imgTruyen}/${thumbUrl}`;
     },
-    /**
-     * Lấy nội dung chương (danh sách ảnh)
-     * @param {string} apiUrl - URL API gốc (từ chapter_api_data)
-     * @returns {Promise<Object>} - Dữ liệu JSON chứa link ảnh
-     */
+
     async getTruyenChapter(apiUrl) {
         if (!apiUrl) return null;
-
-        // Rewrite URL để chạy qua Nginx Proxy
-        // Gốc: https://sv1.otruyencdn.com/v1/api/chapter/...
-        // Proxy: /api/truyen-chapter/v1/api/chapter/...
         let url = apiUrl;
         if (url.includes('sv1.otruyencdn.com')) {
             url = url.replace('https://sv1.otruyencdn.com', '/api/truyen-chapter');
         }
-
         return this.fetch(url);
     },
 };
+
+window.API = API;
