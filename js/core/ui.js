@@ -6,6 +6,7 @@
 
 
 const currentMode = localStorage.getItem('qhub-mode') || 'phim';
+window.currentMode = currentMode;
 window.currentDetailData = null;
 
 // Infinite Scroll State
