@@ -5,11 +5,82 @@
 
 
 
-// Global State
 const currentMode = localStorage.getItem('qhub-mode') || 'phim';
 window.currentDetailData = null;
 
+// Infinite Scroll State
+let infiniteScrollState = {
+    active: false,
+    section: null,
+    page: 1,
+    isLoading: false,
+    hasMore: true,
+    keyword: '' // For search
+};
+
 function getModeConfig() { return APP_MODES[currentMode]; }
+
+// Infinite Scroll Listener
+window.addEventListener('scroll', () => {
+    if (!infiniteScrollState.active || infiniteScrollState.isLoading || !infiniteScrollState.hasMore) return;
+
+    // Check if near bottom
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+        loadMoreContent();
+    }
+});
+
+async function loadMoreContent() {
+    infiniteScrollState.isLoading = true;
+    infiniteScrollState.page++;
+
+    // Show spinner at bottom
+    let loader = document.getElementById('infinite-loader');
+    if (!loader) {
+        loader = document.createElement('div');
+        loader.id = 'infinite-loader';
+        loader.className = 'loading-spinner';
+        loader.style.margin = '20px auto';
+        const grid = document.getElementById('gridContent');
+        if (grid) grid.parentNode.appendChild(loader);
+    }
+    loader.style.display = 'block';
+
+    try {
+        const { section, page, keyword } = infiniteScrollState;
+        let res;
+
+        // Search Logic
+        if (section === 'search') {
+            res = (currentMode === 'phim') ? await API.searchPhim(keyword, page) : await API.searchTruyen(keyword, page);
+        } else {
+            // Category / List Logic
+            const isListType = ['phim-le', 'phim-bo', 'hoat-hinh', 'tv-shows', 'truyen-moi', 'sap-ra-mat', 'dang-phat-hanh', 'hoan-thanh'].includes(section);
+            if (isListType) {
+                res = (currentMode === 'phim') ? await API.getPhimList(section, page) : await API.getTruyenList(section, page);
+            } else {
+                res = (currentMode === 'phim') ? await API.getPhimByCategory(section, page) : await API.getTruyenByCategory(section, page);
+            }
+        }
+
+        const items = res?.data?.items || [];
+        if (items.length > 0) {
+            const grid = document.getElementById('gridContent');
+            if (grid) {
+                items.forEach(item => grid.appendChild(createCard(item)));
+            }
+        } else {
+            infiniteScrollState.hasMore = false;
+        }
+
+    } catch (e) {
+        console.error('Load more failed:', e);
+        infiniteScrollState.hasMore = false;
+    } finally {
+        infiniteScrollState.isLoading = false;
+        if (loader) loader.style.display = 'none';
+    }
+}
 
 /* === HEADER & NAV === */
 function renderHeader() {
@@ -43,6 +114,7 @@ function renderHeader() {
                 <div class="mobile-shortcuts">
                     <button class="header-icon-btn" onclick="handleNav('genres')" aria-label="Thể loại">${ICONS.category}</button>
                     <button class="header-icon-btn" onclick="handleNav('history')" aria-label="Lịch sử">${ICONS.history}</button>
+                    <button class="header-icon-btn" onclick="openSettings()" aria-label="Cài đặt">⚙️</button>
                     <button class="header-icon-btn" onclick="handleNav('bookmarks')" aria-label="Tủ đồ" style="color:#ff5555;">❤</button>
                 </div>
                 <div class="search-box">
@@ -81,6 +153,16 @@ window.handleNav = async (section, label) => {
     main.innerHTML = `<div class="loading-spinner-container" style="padding:100px 0;text-align:center;"><div class="loading-spinner"></div><p style="margin-top:10px;color:#888;">Đang tải ${label}...</p></div>`;
     main.style.paddingTop = '80px';
 
+    // Reset Infinite Scroll
+    infiniteScrollState = {
+        active: false,
+        section: section,
+        page: 1,
+        isLoading: false,
+        hasMore: true,
+        keyword: ''
+    };
+
     try {
         if (section === 'genres') {
             const apiRes = currentMode === 'phim' ? await API.getPhimCategories() : await API.getTruyenCategories();
@@ -101,13 +183,31 @@ window.handleNav = async (section, label) => {
             return;
         }
 
+        let res; // Moved up
+
+        if (section === 'search') {
+            const keyword = infiniteScrollState.keyword;
+            label = `Kết quả tìm kiếm: "${keyword}"`;
+
+            // Enable Infinite Scroll tracking
+            infiniteScrollState.active = true;
+
+            res = (currentMode === 'phim') ? await API.searchPhim(keyword) : await API.searchTruyen(keyword);
+        }
+
         // List Handling
         const isListType = ['phim-le', 'phim-bo', 'hoat-hinh', 'tv-shows', 'truyen-moi', 'sap-ra-mat', 'dang-phat-hanh', 'hoan-thanh'].includes(section);
-        let res;
-        if (isListType) {
-            res = currentMode === 'phim' ? await API.getPhimList(section) : await API.getTruyenList(section);
-        } else {
-            res = currentMode === 'phim' ? await API.getPhimByCategory(section) : await API.getTruyenByCategory(section);
+
+        if (!res && section !== 'search') {
+            // Enable Infinite Scroll tracking
+            infiniteScrollState.active = true;
+
+            if (isListType) {
+                res = currentMode === 'phim' ? await API.getPhimList(section) : await API.getTruyenList(section);
+            } else {
+                // Category Slug
+                res = currentMode === 'phim' ? await API.getPhimByCategory(section) : await API.getTruyenByCategory(section);
+            }
         }
 
         if (res?.data?.items) {

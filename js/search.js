@@ -75,14 +75,34 @@ function initSearchBox() {
         return;
     }
 
-    // Toggle Input -> Giờ là nút Submit tìm kiếm
+    // Event Click Toggle (Mobile/Tablet)
     searchToggle.addEventListener('click', (e) => {
         e.stopPropagation();
         const query = searchInput.value.trim();
         if (query) {
-            performSearch(query, resultsContainer);
+            if (window.infiniteScrollState) window.infiniteScrollState.keyword = query;
+            if (window.handleNav) window.handleNav('search', query);
+            resultsContainer.classList.remove('show');
         } else {
             searchInput.focus();
+        }
+    });
+
+    // Handle Enter Key
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const query = searchInput.value.trim();
+            if (query) {
+                // Close dropdown
+                resultsContainer.classList.remove('show');
+                // Set Global State for Infinite Scroll
+                if (window.infiniteScrollState) {
+                    window.infiniteScrollState.keyword = query;
+                    // Navigate to search page
+                    if (window.handleNav) window.handleNav('search', query);
+                }
+            }
         }
     });
 
