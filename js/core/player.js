@@ -20,15 +20,16 @@ const Player = {
         if (container) container.innerHTML = '';
 
         const videoWrapper = document.createElement('div');
-        videoWrapper.className = 'video-container';
         videoWrapper.style.width = '100%';
         videoWrapper.style.height = '100%';
+        videoWrapper.style.position = 'relative';
+        videoWrapper.style.background = '#000';
         container.appendChild(videoWrapper);
 
         // UI function to show error
         this.showError = (msg) => {
             videoWrapper.innerHTML = `
-                <div style="width:100%;height:100%;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#fff;text-align:center;gap:15px;padding:20px;">
+                <div style="position:absolute;inset:0;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#fff;text-align:center;gap:15px;padding:20px;z-index:100;">
                     <div style="font-size:3rem;">⚠️</div>
                     <div style="font-size:1.1rem;color:#f55;max-width:80%;">${msg}</div>
                     <div style="display:flex;gap:10px;">
@@ -46,7 +47,7 @@ const Player = {
             return this.showError('Link phim bị lỗi hoặc rỗng.');
         }
 
-        // --- XỬ LÝ M3U8 (Native) ---
+        // --- XỬ LÝ M3U8 ---
         if (url.includes('.m3u8')) {
             const saveKey = `qhub-playback-${url}`;
             const savedTime = parseFloat(QStorage.get(saveKey, 0));
@@ -56,10 +57,8 @@ const Player = {
                 url: url,
                 poster: poster || '',
                 volume: 0.7,
-                isLive: false,
-                muted: false,
                 autoplay: true,
-                autoSize: true,
+                autoSize: false,
                 autoMini: true,
                 playbackRate: true,
                 aspectRatio: true,
@@ -67,8 +66,6 @@ const Player = {
                 pip: true,
                 fullscreen: true,
                 fullscreenWeb: true,
-                subtitleOffset: true,
-                miniProgressBar: true,
                 mutex: true,
                 backdrop: true,
                 playsInline: true,
@@ -76,65 +73,37 @@ const Player = {
                 airplay: true,
                 lock: true,
                 fastForward: true,
-                theme: '#e50914', // Netflix Red
-                moreVideoAttr: {
-                    crossOrigin: 'anonymous',
-                },
+                theme: '#e50914',
                 customType: {
                     m3u8: function (video, url, art) {
                         if (Hls.isSupported()) {
                             if (art.hls) art.hls.destroy();
-                            const hls = new Hls({
-                                fragLoadingMaxRetry: 3,
-                                manifestLoadingMaxRetry: 2
-                            });
+                            const hls = new Hls();
                             hls.loadSource(url);
                             hls.attachMedia(video);
                             art.hls = hls;
-
                             hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                                // Cập nhật Quality Menu từ levels
                                 const levels = hls.levels;
                                 if (levels && levels.length > 1) {
                                     art.setting.update({
                                         name: 'quality',
                                         width: 150,
                                         html: 'Chất lượng',
-                                        selector: [
-                                            {
-                                                html: 'Auto',
-                                                level: -1,
-                                                default: true,
-                                            },
-                                            ...levels.map((level, index) => ({
-                                                html: level.height + 'p',
-                                                level: index,
-                                            }))
-                                        ],
-                                        onSelect: function (item) {
-                                            hls.currentLevel = item.level;
-                                            return item.html;
-                                        }
+                                        selector: levels.map((l, i) => ({ html: l.height + 'p', level: i })),
+                                        onSelect: (item) => { hls.currentLevel = item.level; return item.html; }
                                     });
                                 }
                             });
-
-                            // Lỗi HLS
-                            hls.on(Hls.Events.ERROR, (event, data) => {
-                                if (data.fatal) {
-                                    console.warn('HLS Fatal Error, checking backup...');
-                                    if (backupUrl) {
-                                        art.destroy();
-                                        Player.initVideo(container, backupUrl, nextEpCallback, poster, null);
-                                    }
+                            hls.on(Hls.Events.ERROR, (e, data) => {
+                                if (data.fatal && backupUrl) {
+                                    art.destroy();
+                                    Player.initVideo(container, backupUrl, nextEpCallback, poster, null);
                                 }
                             });
                         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                             video.src = url;
-                        } else {
-                            art.notice.show = 'Trình duyệt không hỗ trợ HLS';
                         }
-                    },
+                    }
                 },
                 controls: [
                     {
@@ -147,7 +116,7 @@ const Player = {
                 ],
             });
 
-            // --- Events & Logic ---
+            // Events
             this.art.on('ready', () => {
                 if (savedTime > 10) {
                     this.art.currentTime = savedTime;
@@ -156,7 +125,6 @@ const Player = {
             });
 
             this.art.on('video:ended', () => {
-                console.log('🎬 Film ended, calling next...');
                 if (nextEpCallback) nextEpCallback();
             });
 
@@ -167,9 +135,7 @@ const Player = {
                 }
             });
 
-            // Xử lý lỗi load ban đầu
             this.art.on('video:error', () => {
-                console.error('ArtPlayer Video Error');
                 if (backupUrl) {
                     this.art.destroy();
                     this.initVideo(container, backupUrl, nextEpCallback, poster, null);
@@ -180,10 +146,9 @@ const Player = {
             // --- XỬ LÝ EMBED / IFRAME ---
             console.log('🔗 Playing Embed Iframe:', url);
             videoWrapper.innerHTML = `
-                <iframe src="${url}" style="width:100%;height:100%;border:none;" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+                <iframe src="${url}" style="width:100%;height:100%;border:none;background:#000;" allowfullscreen allow="autoplay; encrypted-media"></iframe>
             `;
 
-            // Notify loss of features
             const toastId = 'embed-warning-toast';
             if (!document.getElementById(toastId)) {
                 const toast = document.createElement('div');
@@ -203,11 +168,10 @@ const Player = {
      */
     initReader(container, images, nav = {}, chapterName = '') {
         console.log('📖 Reader init:', chapterName);
-        this.destroy(); // Clear old content
-        this._autoNextTriggered = false; // Reset auto-next state
+        this.destroy();
+        this._autoNextTriggered = false;
         if (container) container.innerHTML = '';
 
-        // ===== Thanh tiến trình đọc =====
         let progressBar = document.querySelector('.reader-progress');
         if (!progressBar) {
             progressBar = document.createElement('div');
@@ -216,24 +180,18 @@ const Player = {
         }
         progressBar.style.width = '0%';
 
-        // ===== Nút cuộn lên đầu =====
         let scrollTopBtn = document.querySelector('.reader-scroll-top');
         if (!scrollTopBtn) {
             scrollTopBtn = document.createElement('button');
             scrollTopBtn.className = 'reader-scroll-top';
             scrollTopBtn.innerHTML = '↑';
-            scrollTopBtn.title = 'Lên đầu';
             document.body.appendChild(scrollTopBtn);
         }
-        scrollTopBtn.onclick = () => {
-            container.scrollTo({ top: 0, behavior: 'smooth' });
-        };
+        scrollTopBtn.onclick = () => container.scrollTo({ top: 0, behavior: 'smooth' });
 
-        // ===== Container chính =====
         const readingContainer = document.createElement('div');
         readingContainer.className = 'reading-container';
 
-        // Xử lý scroll
         const onScroll = () => {
             const scrollTop = container.scrollTop;
             const scrollHeight = container.scrollHeight - container.clientHeight;
@@ -241,7 +199,6 @@ const Player = {
             progressBar.style.width = percent + '%';
             scrollTopBtn.classList.toggle('visible', scrollTop > 500);
 
-            // AUTO NEXT CHAPTER
             if (nav.next && !this._autoNextTriggered) {
                 if (scrollTop + container.clientHeight >= container.scrollHeight - 100) {
                     this._autoNextTriggered = true;
@@ -267,11 +224,8 @@ const Player = {
             container.removeEventListener('scroll', onScroll);
             if (progressBar) progressBar.remove();
             if (scrollTopBtn) scrollTopBtn.remove();
-            const lmb = document.querySelector('.reader-load-mode');
-            if (lmb) lmb.remove();
         };
 
-        // Navigation Helper
         const currentApiUrl = this._currentApiUrl || '';
         const createNav = () => {
             const navDiv = document.createElement('div');
@@ -338,7 +292,6 @@ const Player = {
 
         readingContainer.appendChild(createNav());
 
-        // Render Images
         if (!images || images.length === 0) {
             readingContainer.innerHTML += '<p style="color:#fff;text-align:center;padding:40px;">Không có nội dung chương này.</p>';
         } else {
@@ -367,18 +320,14 @@ const Player = {
 
     destroy() {
         if (this.art) {
-            console.log('Destroying ArtPlayer...');
             if (this.art.hls) this.art.hls.destroy();
             this.art.destroy(true);
             this.art = null;
         }
-
-        // Clear containers
         ['mediaContainer', 'watchPlayerContainer', 'readerContainer'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.innerHTML = '';
         });
-
         if (this._readerCleanup) {
             this._readerCleanup();
             this._readerCleanup = null;
