@@ -56,7 +56,7 @@ window.renderShortsPage = (items) => {
             </div>
 
             <div class="shorts-actions">
-                <button class="shorts-btn play-btn" onclick="playShortInSlide('${item.slug}', this)">▶</button>
+                <button class="shorts-btn play-btn" onclick="playShortInSlide('${item.slug}', this, true)">▶</button>
                 <button class="shorts-btn" onclick="likeShort(this)">❤</button>
                 <button class="shorts-btn" onclick="showDetail('${item.slug}')">ℹ</button>
             </div>
@@ -76,7 +76,10 @@ function initShortsObserver() {
             if (entry.isIntersecting) {
                 const slug = entry.target.dataset.slug;
                 console.log('👀 Active Short:', slug);
-                playShortInSlide(slug, entry.target.querySelector('.play-btn'));
+                // Call global function to ensure it exists
+                if (window.playShortInSlide) {
+                    window.playShortInSlide(slug, entry.target.querySelector('.play-btn'), false);
+                }
             } else {
                 // Stop player if not visible
                 const playerContainer = entry.target.querySelector('.shorts-video-container');
@@ -93,12 +96,13 @@ function initShortsObserver() {
 }
 
 // Fixed Play Logic for Slide
-window.playShortInSlide = async (slug, btn) => {
+window.playShortInSlide = async (slug, btn, isManual = false) => {
     const slide = btn.closest('.shorts-item');
     const playerContainer = slide.querySelector('.shorts-video-container');
     const poster = slide.querySelector('.shorts-poster');
 
-    if (playerContainer.classList.contains('active')) return; // Already playing
+    // Only skip if already active AND this is an auto-play trigger
+    if (!isManual && playerContainer.classList.contains('active')) return;
 
     try {
         const res = await API.getPhimDetail(slug);
@@ -115,7 +119,13 @@ window.playShortInSlide = async (slug, btn) => {
         }
 
         if (firstEp) {
-            const link = firstEp.link_embed || firstEp.link_m3u8;
+            let link = firstEp.link_embed || firstEp.link_m3u8;
+
+            // Force autoplay for shorts if embed
+            if (link.includes('embed') || link.includes('share')) {
+                link += (link.includes('?') ? '&' : '?') + 'autoplay=1';
+            }
+
             const backupUrl = (firstEp.link_m3u8 && firstEp.link_embed && firstEp.link_m3u8 !== firstEp.link_embed) ? firstEp.link_m3u8 : null;
             const thumb = API.getPhimImageUrl(data.thumb_url);
 
