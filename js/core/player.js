@@ -42,6 +42,18 @@ const Player = {
             if (retryBtn) retryBtn.onclick = () => this.initVideo(container, backupUrl, nextEpCallback, poster, null);
         };
 
+        // Check Valid URL
+        if (!url || url.trim() === '') {
+            if (backupUrl) {
+                console.log('Main URL empty, switching to Backup:', backupUrl);
+                this.initVideo(container, backupUrl, nextEpCallback, poster, null);
+                return;
+            } else {
+                this.showError('Link phim bị lỗi hoặc rỗng.');
+                return;
+            }
+        }
+
         if (url && url.includes('.m3u8')) {
             const video = document.createElement('video');
             video.className = 'video-player';
