@@ -367,8 +367,8 @@ window.handleNav = async (section, label) => {
         // Shorts Logic
         if (section === 'shorts') {
             if (currentMode === 'phim') {
-                section = 'tv-shows'; // Map to TV Shows for now
-                label = 'Short Films';
+                section = 'phim-ngan'; // Map to Short Films Category
+                label = 'Short Drama';
             } else {
                 main.innerHTML = `
                 <div style="text-align:center;padding:100px 20px;">
