@@ -185,7 +185,7 @@ function renderHeader() {
     header.innerHTML = `
         <div class="header-inner">
             <div class="header-left">
-                <button class="header-icon-btn" onclick="toggleSidebar(true)" style="margin-right:10px;font-size:1.4rem;">☰</button>
+                <button class="header-icon-btn desktop-only" onclick="toggleSidebar(true)" style="margin-right:10px;font-size:1.4rem;">☰</button>
                 <a href="#" class="logo" onclick="handleNav('home'); return false;">
                     <span class="logo-text">${config.label}</span>
                 </a>
