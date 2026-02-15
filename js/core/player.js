@@ -171,6 +171,19 @@ const Player = {
                 this.showError('Link phim bị lỗi hoặc rỗng.');
                 return;
             }
+            console.warn('⚠️ Playing Embed Mode. Auto-Next and History tracking DISABLED due to iframe restrictions.');
+
+            // Show toast one time
+            const toastId = 'embed-warning-toast';
+            if (!document.getElementById(toastId)) {
+                const toast = document.createElement('div');
+                toast.id = toastId;
+                toast.innerHTML = '⚠️ Chế độ Embed: Tự động chuyển tập & Lưu lịch sử KHÔNG hoạt động.';
+                toast.style.cssText = 'position:fixed;top:80px;right:20px;background:rgba(255,165,0,0.9);color:#000;padding:10px 15px;border-radius:5px;z-index:9999;font-size:0.85rem;font-weight:bold;pointer-events:none;animation:fadeInOut 5s forwards;';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 5000);
+            }
+
             videoWrapper.innerHTML = `<div class="plyr__video-embed" id="player">
                 <iframe src="${url}" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
             </div>`;
