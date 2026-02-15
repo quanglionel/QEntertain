@@ -356,6 +356,32 @@
     transform: translateY(-7px) rotate(-45deg);
 }
 
+/* === Utils === */
+.mobile-only {
+    display: none !important;
+}
+
+@media (max-width: 900px) {
+    .desktop-only {
+        display: none !important;
+    }
+
+    .mobile-only {
+        display: flex !important;
+    }
+
+    .logo {
+        margin-right: auto;
+    }
+
+    /* Ensure logo stays left or centered as needed */
+    .header-right {
+        gap: 5px;
+    }
+
+    /* Tighten spacing on mobile */
+}
+
 /* === Desktop Navigation === */
 .desktop-nav {
     display: flex;

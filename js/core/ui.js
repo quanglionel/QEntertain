@@ -192,9 +192,16 @@ function renderHeader() {
             </div>
 
             <div class="header-right">
+                <!-- Desktop Mode Switch -->
                 <div class="header-mode-container desktop-only" style="margin-right: 15px;">
                     ${modeSwitchHTML}
                 </div>
+
+                <!-- Mobile Mode Switch (Icon Only) -->
+                <button class="header-icon-btn mobile-only" onclick="toggleMode('${currentMode === 'phim' ? 'truyen' : 'phim'}')" style="margin-right: 5px;">
+                    <span style="font-size: 1.2rem;">${currentMode === 'phim' ? '📚' : '🎬'}</span>
+                </button>
+
                 <div class="search-box">
                     <input type="text" class="search-input" placeholder="Tìm kiếm...">
                     <button class="search-toggle">🔍</button>
